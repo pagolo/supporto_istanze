@@ -1,0 +1,176 @@
+<?php
+/**
+ * @file
+ */
+
+// stylesheet on all pages
+//drupal_add_css(drupal_get_path('module', 'sign_for_acknowledgement') . '/' . 'stylesheet.css');
+
+/**
+ * Implements hook_views_api().
+ */
+function supporto_istanze_views_api()
+{
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'supporto_istanze'),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function supporto_istanze_permission() {
+  return array(
+    'protocollato' => array(
+      'title' => 'Protocollo',
+      'description' => 'Impostare o togliere il campo <em>Protocollato</em>',
+    ),
+    'visto' => array(
+      'title' => 'Visto del DS',
+      'description' => 'Impostare o togliere il campo <em>Visto del DS</em>',
+    ),
+    'accolto' => array(
+      'title' => 'Istanza accolta',
+      'description' => 'Accogliere o rifiutare una istanza',
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function supporto_istanze_theme($existing, $type, $theme, $path) {
+  return array(
+    'supporto_istanze_views' => array(
+      'variables' => array(
+        'content' => NULL,
+        'assoc' => array(),
+      ),
+      'file' => 'supporto_istanze.theme.inc',
+      'template' => 'supporto-istanze-views',
+    ),
+  );
+}
+
+function supporto_istanze_forms($form_id, $args) {
+  $forms = array();
+  if (!empty($args) && !empty($form_id) && strpos($form_id, 'supporto_istanze_form_') === 0) {
+    $forms[$form_id] = array ('callback' => 'supporto_istanze_form');
+  }
+  return $forms;
+}
+
+function supporto_istanze_form_submit($form, $form_state) {
+  $input = $form_state['values'];
+  if ($input['field'] == 'protocollo' || $input['field'] == 'visto') {
+    _supporto_istanze_save_checkbox($input);
+  }
+}
+
+function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, $field) {
+  $form['user'] = array(
+    '#type' => 'value',
+    '#name' => 'user',
+    '#value' => $uid,
+  );
+  $form['submission'] = array(
+    '#type' => 'value',
+    '#name' => 'submission',
+    '#value' => $sid,
+  );
+  $form['tid'] = array(
+    '#type' => 'value',
+    '#name' => 'tid',
+    '#value' => $tid,
+  );
+  $form['field'] = array(
+    '#type' => 'value',
+    '#name' => 'field',
+    '#value' => $field,
+  );
+  $form['is_ok'] = array(
+    '#type' => 'checkbox',
+    '#default_value' => $checked,
+    '#attributes' => array(
+      'onclick' => 'this.form.submit()',
+      'title' => 'Selezionare per cambiare lo stato',
+    ),
+  );
+  $form['hidden_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+    '#attributes' => array(
+      'style' => 'display:none',
+    ),
+  );
+  return $form;
+}
+
+function _supporto_istanze_save_checkbox($input) {
+  if ($input['tid'] == 0) {
+    $id = db_insert('supporto_istanze')
+    ->fields(array(
+      'user_id' => $input['user'],
+      'submission_id' => $input['submission'],
+      $input['field'] . '_stato' => $input['is_ok'],
+      $input['field'] . '_data' => time(),
+      ))
+    ->execute();
+  } else {
+    db_update('supporto_istanze')
+    ->fields(array(
+      'user_id' => $input['user'],
+      'submission_id' => $input['submission'],
+      $input['field'] . '_stato' => $input['is_ok'],
+      $input['field'] . '_data' => time(),
+      ))
+    ->condition('tid', $input['tid'])
+    ->execute();
+  }
+}
+
+function _supporto_istanze_reset_field($fieldname, $markupvalue, $label, $description) {
+  // Check if our field is not already created.
+  if (!field_info_field($fieldname)) {
+    $field = array(
+      'field_name' => $fieldname, 
+      'type' => 'markup', 
+      'settings' => array(
+        'default_value' => '',
+        'markup' => array (
+          'value' => $markupvalue,
+          'format' => 'full_html',
+        )
+      )
+    );
+    field_create_field($field);
+  }
+  $node_types = node_type_get_types();
+  foreach ($node_types as $node_type) {
+    $bundle = $node_type->type;
+    if ($bundle != 'istanze_del_personale') continue;
+    if (!field_info_instance('node', $fieldname, $bundle)) {
+      $instance = array(
+        'field_name' => $fieldname, 
+        'entity_type' => 'node', 
+        'label' => $label,
+        'description' => $description,
+        'type' => 'markup', 
+        'bundle' => $bundle, 
+        'widget' => array(
+          'type' => 'markup',
+        ),
+        'default_value' => '',
+        'settings' => array(
+          'default_value' => '',
+          'markup' => array (
+             'value' => $markupvalue,
+             'format' => 'full_html',
+          )
+        )
+      );
+      field_create_instance($instance);
+    }
+  }
+}
