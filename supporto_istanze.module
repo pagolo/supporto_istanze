@@ -63,9 +63,9 @@ function supporto_istanze_forms($form_id, $args) {
 
 function supporto_istanze_form_submit($form, $form_state) {
   $input = $form_state['values'];
-  if ($input['field'] == 'protocollo' || $input['field'] == 'visto') {
-    _supporto_istanze_save_checkbox($input);
-  }
+//  if ($input['field'] == 'protocollo' || $input['field'] == 'visto') {
+    _supporto_istanze_save_selection($input);
+//  }
 }
 
 function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, $field) {
@@ -89,14 +89,30 @@ function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, 
     '#name' => 'field',
     '#value' => $field,
   );
-  $form['is_ok'] = array(
-    '#type' => 'checkbox',
-    '#default_value' => $checked,
-    '#attributes' => array(
-      'onclick' => 'this.form.submit()',
-      'title' => 'Selezionare per cambiare lo stato',
-    ),
-  );
+  if ($field == 'accolto') {
+    $form['is_ok'] = array(
+      '#type' => 'select',
+      '#options' => array(
+        0 => 'da esaminare',
+        1 => 'istanza accolta',
+        2 => 'istanza respinta',
+      ),
+      '#default_value' => $checked,
+      '#attributes' => array(
+        'onchange' => 'this.form.submit()',
+        'title' => 'Selezionare per cambiare lo stato',
+      ),
+    );
+  } else {
+    $form['is_ok'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => $checked,
+      '#attributes' => array(
+        'onclick' => 'this.form.submit()',
+        'title' => 'Selezionare per cambiare lo stato',
+      ),
+    );
+  }
   $form['hidden_submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
@@ -107,7 +123,7 @@ function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, 
   return $form;
 }
 
-function _supporto_istanze_save_checkbox($input) {
+function _supporto_istanze_save_selection($input) {
   if ($input['tid'] == 0) {
     $id = db_insert('supporto_istanze')
     ->fields(array(

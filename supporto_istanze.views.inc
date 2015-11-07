@@ -50,10 +50,17 @@ function supporto_istanze_views_pre_render(&$view) {
       $view->result[$i]->field_field_si_visto[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');                                                                                                              
     }
     if (isset($node->field_field_si_accolto)) {
-      if ($nodata || $data['accolto_stato'] == 0) {
-        $view->result[$i]->field_field_si_accolto[0]['rendered'][] = array ('#markup' => '---', '#access' => '1');
-      } else {
+      if (user_access('accolto')) {
+        $ass_array = array();
+        $ass_array['my_dropdown'] = drupal_get_form('supporto_istanze_form_2_'.$i, $sid, $uid, $nodata? 0 : $data['tid'], $nodata? 0 : $data['accolto_stato'], 'accolto');
+        $html = theme('supporto_istanze_views', array ('content' => '', 'assoc' => $ass_array));
       }
+      else if ($nodata || $data['accolto_stato'] == 0) {
+        $html = '---';
+      } else {
+        $html = ($data['accolto_stato'] == 1 ? 's&igrave; ' : 'no ') . '(' . format_date($data['accolto_data'], 'custom', 'd/m/Y') . ')';
+      }
+      $view->result[$i]->field_field_si_accolto[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
     }
   }
 }
