@@ -115,7 +115,41 @@ function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, 
   }
   $form['hidden_submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Submit'),
+    '#value' => 'Invia',
+    '#attributes' => array(
+      'style' => 'display:none',
+    ),
+  );
+  return $form;
+}
+
+function supporto_istanze_reasons_form($form, &$form_state, $sid, $uid, $tid, $checked, $field) {
+  $form['user'] = array(
+    '#type' => 'value',
+    '#name' => 'user',
+    '#value' => $uid,
+  );
+  $form['submission'] = array(
+    '#type' => 'value',
+    '#name' => 'submission',
+    '#value' => $sid,
+  );
+  $form['tid'] = array(
+    '#type' => 'value',
+    '#name' => 'tid',
+    '#value' => $tid,
+  );
+  $form['field'] = array(
+    '#type' => 'value',
+    '#name' => 'field',
+    '#value' => $field,
+  );
+  $form['reasons'] = array(
+    '#type' => 'text',
+  );
+  $form['hidden_submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Invia',
     '#attributes' => array(
       'style' => 'display:none',
     ),
@@ -144,6 +178,7 @@ function _supporto_istanze_save_selection($input) {
     ->condition('tid', $input['tid'])
     ->execute();
   }
+  drupal_set_message('Salvato campo <em>'. $input['field'] . '</em> istanza <em>' . $input['submission'] . '</em>');
 }
 
 function _supporto_istanze_reset_field($fieldname, $markupvalue, $label, $description) {
@@ -179,7 +214,7 @@ function _supporto_istanze_reset_field($fieldname, $markupvalue, $label, $descri
         ),
         'default_value' => '',
         'settings' => array(
-          'default_value' => '',
+          'defau:-)lt_value' => '',
           'markup' => array (
              'value' => $markupvalue,
              'format' => 'full_html',
@@ -189,4 +224,28 @@ function _supporto_istanze_reset_field($fieldname, $markupvalue, $label, $descri
       field_create_instance($instance);
     }
   }
+}
+
+function supporto_istanze_admin_paths() {
+  $paths = array(
+    'node/*/submission/*/motivazioni' => TRUE,
+  );
+  return $paths;
+} 
+
+function supporto_istanze_menu() {
+  $items = array();
+
+  $items['node/%node/submission/%/motivazioni'] = array(
+    'title' => 'Motivazioni',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('supporto_istanze_reasons_form'),
+//    'access callback' => '_supporto_istanze_check_possible',
+    'access arguments' => array('accolto'),
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+//    'file' => 'supporto_istanze.admin.inc',
+  );
+
+  return $items;
 }
