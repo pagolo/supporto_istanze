@@ -3,9 +3,6 @@
  * @file
  */
 
-// stylesheet on all pages
-//drupal_add_css(drupal_get_path('module', 'sign_for_acknowledgement') . '/' . 'stylesheet.css');
-
 /**
  * Implements hook_views_api().
  */
@@ -63,9 +60,7 @@ function supporto_istanze_forms($form_id, $args) {
 
 function supporto_istanze_form_submit($form, $form_state) {
   $input = $form_state['values'];
-//  if ($input['field'] == 'protocollo' || $input['field'] == 'visto') {
-    _supporto_istanze_save_selection($input);
-//  }
+  _supporto_istanze_save_selection($input);
 }
 
 function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, $field) {
@@ -89,30 +84,14 @@ function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, 
     '#name' => 'field',
     '#value' => $field,
   );
-  if ($field == 'accolto') {
-    $form['is_ok'] = array(
-      '#type' => 'select',
-      '#options' => array(
-        0 => 'da esaminare',
-        1 => 'istanza accolta',
-        2 => 'istanza respinta',
-      ),
-      '#default_value' => $checked,
-      '#attributes' => array(
-        'onchange' => 'this.form.submit()',
-        'title' => 'Selezionare per cambiare lo stato',
-      ),
-    );
-  } else {
-    $form['is_ok'] = array(
-      '#type' => 'checkbox',
-      '#default_value' => $checked,
-      '#attributes' => array(
-        'onclick' => 'this.form.submit()',
-        'title' => 'Selezionare per cambiare lo stato',
-      ),
-    );
-  }
+  $form['is_ok'] = array(
+    '#type' => 'checkbox',
+    '#default_value' => $checked,
+    '#attributes' => array(
+      'onclick' => 'this.form.submit()',
+      'title' => 'Selezionare per cambiare lo stato',
+    ),
+  );
   $form['hidden_submit'] = array(
     '#type' => 'submit',
     '#value' => 'Invia',
@@ -123,36 +102,60 @@ function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, 
   return $form;
 }
 
-function supporto_istanze_reasons_form($form, &$form_state, $sid, $uid, $tid, $checked, $field) {
-  $form['user'] = array(
-    '#type' => 'value',
-    '#name' => 'user',
-    '#value' => $uid,
-  );
-  $form['submission'] = array(
-    '#type' => 'value',
-    '#name' => 'submission',
-    '#value' => $sid,
-  );
+function supporto_istanze_reasons_form_submit($form, &$form_state) {
+  $input = $form_state['values'];
+  db_update('supporto_istanze')
+  ->fields(array(
+    'accolto_stato' => $input['is_ok'],
+    'accolto_data' => time(),
+    'motivazioni' => $input['reasons'],
+    ))
+  ->condition('tid', $input['tid'])
+  ->execute();
+  drupal_set_message('Salvato esito istanza <em>' . $input['tid'] . '</em>.');
+  overlay_close_dialog('', array('external' => TRUE));
+  $form_state['redirect'] = FALSE;
+}
+
+function supporto_istanze_reasons_form($form, &$form_state) {
+  $tid = arg(5);
+  $result = db_query('SELECT * FROM {supporto_istanze} WHERE tid = :tid', array(':tid' => $tid));
+  if ($result->rowCount() == 0) {
+    drupal_set_message('Dati non trovati', 'warning');
+  }
+  $data = $result->fetchAssoc();
+  $uid = $data['user_id'];
+  $checked = $data['accolto_stato'];
+  $reasons = $data['motivazioni'];
+
   $form['tid'] = array(
     '#type' => 'value',
     '#name' => 'tid',
     '#value' => $tid,
   );
-  $form['field'] = array(
-    '#type' => 'value',
-    '#name' => 'field',
-    '#value' => $field,
+  $form['is_ok'] = array(
+    '#type' => 'select',
+    '#title' => 'accogli o respingi:',
+    '#options' => array(
+      0 => 'da valutare',
+      1 => 'istanza accolta',
+      2 => 'istanza respinta',
+    ),
+    '#default_value' => $checked,
+    '#attributes' => array(
+      'title' => 'Selezionare per cambiare lo stato',
+    ),
   );
   $form['reasons'] = array(
-    '#type' => 'text',
+    '#name' => 'reasons',
+    '#type' => 'textarea',
+    '#title' => 'motivazioni, specie in caso di istanza respinta:',
+    '#default_value' => $reasons,
   );
-  $form['hidden_submit'] = array(
+  $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => 'Invia',
-    '#attributes' => array(
-      'style' => 'display:none',
-    ),
+    '#value' => 'Salva',
+//    '#submit' => array('supporto_istanze_reasons_form_submit', '_supporto_istanze_close_callback'),
   );
   return $form;
 }
@@ -228,7 +231,7 @@ function _supporto_istanze_reset_field($fieldname, $markupvalue, $label, $descri
 
 function supporto_istanze_admin_paths() {
   $paths = array(
-    'node/*/submission/*/motivazioni' => TRUE,
+    'node/*/submission/*/istanza/*' => TRUE,
   );
   return $paths;
 } 
@@ -236,15 +239,13 @@ function supporto_istanze_admin_paths() {
 function supporto_istanze_menu() {
   $items = array();
 
-  $items['node/%node/submission/%/motivazioni'] = array(
-    'title' => 'Motivazioni',
+  $items['node/%node/submission/%/istanza/%'] = array(
+    'title' => 'Accogli istanza',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('supporto_istanze_reasons_form'),
-//    'access callback' => '_supporto_istanze_check_possible',
     'access arguments' => array('accolto'),
     'weight' => 2,
-    'type' => MENU_LOCAL_TASK,
-//    'file' => 'supporto_istanze.admin.inc',
+    'type' => MENU_CALLBACK,
   );
 
   return $items;
