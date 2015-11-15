@@ -52,13 +52,6 @@ function supporto_istanze_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
-      'node_id'  => array(
-        'description' => 'node id',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
-      ),
       'user_id' => array(
         'description' => 'user id.',
         'type' => 'int',

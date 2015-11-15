@@ -80,9 +80,14 @@ function supporto_istanze_views_pre_render(&$view) {
       if ($nodata) {
         $html = '---';
       } else {
-        $html = '<div class=\'motivazioni\'>' . $data['motivazioni'] . '</div>';
+        $html = '<div id=\'tid_' . $data['tid'] . '\' style="display:none" onmouseover=\'this.innerHTML="' . $data['motivazioni'] . '"\' onmouseout=\'this.innerHTML="' . _supporto_istanze_abbrevia_testo($data['motivazioni']) . '"\' class=\'motivazioni\'>' . $data['motivazioni'] . '</div>';
+        $html .= "<script type=\"text/javascript\">\n//<![CDATA[\nvar div=document.getElementById('tid_".$data['tid']."');\ndiv.innerHTML=\"" . _supporto_istanze_abbrevia_testo($data['motivazioni']) . "\";\ndiv.style.display='block';\n//]]>\n</script>";
       }
       $view->result[$i]->field_field_si_motivazioni[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
     }
   }
+}
+
+function _supporto_istanze_abbrevia_testo($text) {
+  return substr($text, 0, 8) . (strlen($text) > 8 ? '...(segue)' : '');
 }

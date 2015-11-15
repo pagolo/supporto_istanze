@@ -1,0 +1,8 @@
+$mostra_evasi = TRUE; // impostare a FALSE se si vogliono nascondere le pratiche evase
+$sid = $data->webform_submissions_node_sid;
+$uid = $data->users_webform_submissions_uid;
+$result = db_query("SELECT COUNT(*) FROM {supporto_istanze} WHERE submission_id = :sid AND user_id = :uid AND accolto_stato > 0", array(':sid' => $sid, ':uid' => $uid))->fetchField();
+if ($result > 0) {
+  return $mostra_evasi? FALSE : TRUE;
+}
+return $mostra_evasi? TRUE : FALSE;

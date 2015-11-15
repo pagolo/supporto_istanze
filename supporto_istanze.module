@@ -102,6 +102,42 @@ function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, 
   return $form;
 }
 
+function _supporto_istanze_email($params) {
+  $params['user'] = user_load($params['uid']);
+  $data = db_query('SELECT title, submitted FROM {webform_submissions} AS s LEFT JOIN {node} AS n ON (s.nid = n.nid) WHERE sid = :sid', array(':sid' => $params['submission']))->fetchAssoc();
+  if (!empty($data)) {
+    $params['nomenodo'] = $data['title'];
+    $params['timestamp'] = $data['submitted'];
+  }
+  drupal_mail('supporto_istanze', 'notifica', $params['user']->mail, language_default(), $params);  
+}
+
+function supporto_istanze_mail($key, &$message, $params) {
+  $options = array(
+    'langcode' => $message['language']->language,
+  );
+  $variables = array(
+    '@nomesito' => variable_get('site_name', 'Drupal'),
+    '@nome' => empty($params['user']->field_cognome)? $params['user']->name : $params['user']->field_nome['und'][0]['value'] . ' ' .$params['user']->field_cognome['und'][0]['value'],
+    '@istanza' => $params['nomenodo'],
+    '@istanza_id' => $params['submission'],
+    '@data' => format_date($params['timestamp'], 'custom', 'd/m/Y'),
+    '@esito' => $params['is_ok'] == 1? 'accolta' : 'respinta',
+    '@motivazioni' => $params['reasons'],
+  );
+  
+  switch($key) {
+    case 'notifica':
+      $message['subject'] = @t('Notifica di istanza evasa (@nomesito)', $variables, $options);
+      $message['body'][] = @t("Gentile @nome,", $variables, $options);
+      $message['body'][] = @t("La sua istanza @istanza, n. @istanza_id del @data, è stata @esito.", $variables, $options);
+      if ($params['is_ok'] == 2) {
+        $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
+      }
+      break;
+  }
+}
+  
 function supporto_istanze_reasons_form_submit($form, &$form_state) {
   $input = $form_state['values'];
   db_update('supporto_istanze')
@@ -112,13 +148,15 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
     ))
   ->condition('tid', $input['tid'])
   ->execute();
-  drupal_set_message('Salvato esito istanza <em>' . $input['tid'] . '</em>.');
+  drupal_set_message('Salvato esito istanza <em>' . $input['submission'] . '</em>.');
+  _supporto_istanze_email($input);
   overlay_close_dialog('', array('external' => TRUE));
   $form_state['redirect'] = FALSE;
 }
 
 function supporto_istanze_reasons_form($form, &$form_state) {
   $tid = arg(5);
+  $sid = arg(3);
   $result = db_query('SELECT * FROM {supporto_istanze} WHERE tid = :tid', array(':tid' => $tid));
   if ($result->rowCount() == 0) {
     drupal_set_message('Dati non trovati', 'warning');
@@ -133,15 +171,24 @@ function supporto_istanze_reasons_form($form, &$form_state) {
     '#name' => 'tid',
     '#value' => $tid,
   );
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#name' => 'tid',
+    '#value' => $uid,
+  );
+  $form['submission'] = array(
+    '#type' => 'value',
+    '#name' => 'submission',
+    '#value' => $sid,
+  );
   $form['is_ok'] = array(
-    '#type' => 'select',
+    '#type' => 'radios',
     '#title' => 'accogli o respingi:',
     '#options' => array(
-      0 => 'da valutare',
       1 => 'istanza accolta',
       2 => 'istanza respinta',
     ),
-    '#default_value' => $checked,
+    '#default_value' => $checked? $checked : 1,
     '#attributes' => array(
       'title' => 'Selezionare per cambiare lo stato',
     ),
@@ -155,7 +202,6 @@ function supporto_istanze_reasons_form($form, &$form_state) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Salva',
-//    '#submit' => array('supporto_istanze_reasons_form_submit', '_supporto_istanze_close_callback'),
   );
   return $form;
 }
@@ -245,7 +291,7 @@ function supporto_istanze_menu() {
     'page arguments' => array('supporto_istanze_reasons_form'),
     'access arguments' => array('accolto'),
     'weight' => 2,
-    'type' => MENU_CALLBACK,
+    'type' => MENU_NORMAL_ITEM,
   );
 
   return $items;
