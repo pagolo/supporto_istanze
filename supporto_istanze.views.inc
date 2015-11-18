@@ -41,47 +41,81 @@ function supporto_istanze_views_pre_render(&$view) {
       }
       $view->result[$i]->field_field_si_protocollo[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');                                                                                                              
     }
-    if (isset($node->field_field_si_visto)) {
-      if (user_access('visto')) {
-        $ass_array = array();
-        $ass_array['my_checkbox'] = drupal_get_form('supporto_istanze_form_1_'.$i, $sid, $uid, $nodata? 0 : $data['tid'], $nodata? 0 : $data['visto_stato'], 'visto');
-        $html = theme('supporto_istanze_views', array ('content' => '', 'assoc' => $ass_array));
-      }
-      elseif ($nodata || $data['visto_stato'] == 0) {
-        $html = '---';
-      } else {
-        $html = format_date($data['visto_data'], 'custom', 'd/m/Y');
-      }
-      $view->result[$i]->field_field_si_visto[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');                                                                                                              
-    }
-    if (isset($node->field_field_si_accolto)) {
-      if (user_access('accolto') && !$nodata && $data['protocollo_stato'] == 1 && $data['visto_stato'] == 1) {
-        switch ($data['accolto_stato']) {
+    if (isset($node->field_field_si_acquisita)) {
+      if (user_access('acquisito') && !$nodata && $data['protocollo_stato'] == 1) {
+        switch ($data['acquisito_stato']) {
           case 0:
             $status = 'da valutare';
             break;
           case 1:
-            $status = 'accolto';
+            $status = 'acquisita';
             break;
           case 2:
-            $status = 'respinto';
+            $status = 'non acquisita';
             break;            
         }
-        $html = sprintf('<a title=\'clic qui per valutare o modificare\' href=\'%s#overlay=node/%d/submission/%d/istanza/%d\'>%s</a>', current_path(), $nid, $sid, $data['tid'],$status);
+        $html = sprintf('<a title=\'clic qui per valutare o modificare\' href=\'%s#overlay=node/%d/submission/%d/istanza_acquisisci/%d\'>%s</a>', current_path(), $nid, $sid, $data['tid'],$status);
       }
-      elseif ($nodata || $data['accolto_stato'] == 0) {
+      elseif ($nodata || $data['acquisito_stato'] == 0) {
         $html = '---';
       } else {
-        $html = ($data['accolto_stato'] == 1 ? 's&igrave; ' : 'no ') . '(' . format_date($data['accolto_data'], 'custom', 'd/m/Y') . ')';
+        $html = ($data['acquisito_stato'] == 1 ? 's&igrave; ' : 'no ') . '(' . format_date($data['acquisito_data'], 'custom', 'd/m/Y') . ')';
       }
-      $view->result[$i]->field_field_si_accolto[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
+      $view->result[$i]->field_field_si_acquisita[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
+    }
+    if (isset($node->field_field_si_concedibile)) {
+      if (user_access('acquisito') && !$nodata && $data['protocollo_stato'] == 1) {
+        switch ($data['concedibile_stato']) {
+          case 0:
+            $status = 'da valutare';
+            break;
+          case 1:
+            $status = 'concedibile';
+            break;
+          case 2:
+            $status = 'non concedibile';
+            break;            
+        }
+        $html = sprintf('<a title=\'clic qui per valutare o modificare\' href=\'%s#overlay=node/%d/submission/%d/istanza_concedi/%d\'>%s</a>', current_path(), $nid, $sid, $data['tid'],$status);
+      }
+      elseif ($nodata || $data['concedibile_stato'] == 0) {
+        $html = '---';
+      } else {
+        $html = ($data['concedibile_stato'] == 1 ? 's&igrave; ' : 'no ') . '(' . format_date($data['concedibile_data'], 'custom', 'd/m/Y') . ')';
+      }
+      $view->result[$i]->field_field_si_concedibile[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
+    }
+    if (isset($node->field_field_si_visto)) {
+     if (user_access('visto') && !$nodata && $data['protocollo_stato'] == 1 && $data['concedibile_stato'] == 1) {
+        switch ($data['visto_stato']) {
+          case 0:
+            $status = 'da valutare';
+            break;
+          case 1:
+            $status = 'si concede';
+            break;
+          case 2:
+            $status = 'non si concede';
+            break;            
+        }
+        $html = sprintf('<a title=\'clic qui per valutare o modificare\' href=\'%s#overlay=node/%d/submission/%d/istanza_visto/%d\'>%s</a>', current_path(), $nid, $sid, $data['tid'],$status);
+      }
+      elseif ($nodata || $data['visto_stato'] == 0) {
+        $html = '---';
+      } else {
+        $html = ($data['visto_stato'] == 1 ? 'Si concede' : 'Non si concede') . '(' . format_date($data['visto_data'], 'custom', 'd/m/Y') . ')';
+      }
+      $view->result[$i]->field_field_si_visto[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
     }
     if (isset($node->field_field_si_motivazioni)) {
       if ($nodata) {
         $html = '---';
       } else {
-        $html = '<div id=\'tid_' . $data['tid'] . '\' style="display:none" onmouseover=\'this.innerHTML="' . $data['motivazioni'] . '"\' onmouseout=\'this.innerHTML="' . _supporto_istanze_abbrevia_testo($data['motivazioni']) . '"\' class=\'motivazioni\'>' . $data['motivazioni'] . '</div>';
-        $html .= "<script type=\"text/javascript\">\n//<![CDATA[\nvar div=document.getElementById('tid_".$data['tid']."');\ndiv.innerHTML=\"" . _supporto_istanze_abbrevia_testo($data['motivazioni']) . "\";\ndiv.style.display='block';\n//]]>\n</script>";
+        $full = str_replace(array('\'', '"'),'&#39;',$data['motivazioni']);
+        $abbr = _supporto_istanze_abbrevia_testo($data['motivazioni']);
+        $abbr = str_replace(array('\'', '"'),'&#39;',$abbr);
+        $html = '<div id=\'tid_' . $data['tid'] . '\' style="display:none" onmouseover=\'this.innerHTML="' . $full . '"\' onmouseout=\'this.innerHTML="' . $abbr . '"\' class=\'motivazioni\'>' . $data['motivazioni'] . '</div>';
+        $html .= "<script type=\"text/javascript\">\n//<![CDATA[\nvar div=document.getElementById('tid_".$data['tid']."');\ndiv.innerHTML=\"" . $abbr . "\";\ndiv.style.display='block';\n//]]>\n</script>";
       }
       $view->result[$i]->field_field_si_motivazioni[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
     }

@@ -3,35 +3,25 @@
  * @file
  * Module installation.
  */
-/**
- * Implements hook_update_N().
-function supporto_istanze_update_7200() {
-  if (!module_exists('date')) {
-    throw new Exception('Date module not found, please install and activate it!');
-  }
-  module_load_include('module', 'supporto_istanze');
-  _supporto_istanze_reset_expirations();
-}
- */
 
 /**
  * Implements hook_enable().
  */
 function supporto_istanze_enable() {
-  _supporto_istanze_reset_field('field_si_protocollo', 'Campo relativo al protocollo', 'Protocollato', 'Campo per gestire il protocollo.');
+  _supporto_istanze_reset_field('field_si_protocollo', 'Campo relativo al protocollo', 'Protocollo', 'Campo per gestire il protocollo.');
   _supporto_istanze_reset_field('field_si_visto', 'Campo relativo al visto del DS', 'Visto del DS', 'Campo per gestire il visto del DS.');
-  _supporto_istanze_reset_field('field_si_accolto', 'Campo relativo all&#39;accettazione', 'Accolto', 'Campo per l&#39;accettazione della domanda.');
-  _supporto_istanze_reset_field('field_si_motivazioni', 'Campo relativo alle motivazioni', 'Motivazioni', 'Campo per le motivazioni per cui la domanda è stata respinta.');
+  _supporto_istanze_reset_field('field_si_acquisita', 'Campo relativo all&#39;acquisizione', 'Acquisita', 'Campo per l&#39;acquisizione dell&#39;istanza.');
+  _supporto_istanze_reset_field('field_si_concedibile', 'Campo relativo alla possibilità di concedere l&#39;autorizzazione', 'Concedibile', 'Campo per la concedibilità della richiesta.');
+  _supporto_istanze_reset_field('field_si_motivazioni', 'Campo relativo alle motivazioni', 'Motivazioni', 'Campo per le motivazioni per cui la domanda è stata respinta/non concessa.');
 }
 
 /**
  * Implements hook_install().
  */
 function supporto_istanze_install() {
-  drupal_set_message('Modulo Supporto istanze installato',
-  null
-  );
+  drupal_set_message('Modulo Supporto istanze installato');
 }
+
 /**
  * Implements hook_schema().
  */
@@ -69,6 +59,26 @@ function supporto_istanze_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
+      'concedibile_stato' => array(
+        'description' => 'accept status',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'concedibile_data' => array(
+        'description' => 'accept datestamp',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'acquisito_stato' => array(
+        'description' => 'accept status',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'acquisito_data' => array(
+        'description' => 'accept datestamp',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
       'visto_stato' => array(
         'description' => 'visa status',
         'type' => 'int',
@@ -76,16 +86,6 @@ function supporto_istanze_schema() {
       ),
       'visto_data' => array(
         'description' => 'datestamp of visa',
-        'type' => 'int',
-        'not null' => FALSE,
-      ),
-      'accolto_stato' => array(
-        'description' => 'accept status',
-        'type' => 'int',
-        'not null' => FALSE,
-      ),
-      'accolto_data' => array(
-        'description' => 'accept datestamp',
         'type' => 'int',
         'not null' => FALSE,
       ),
@@ -106,7 +106,8 @@ function supporto_istanze_schema() {
 function supporto_istanze_uninstall() {
   @field_delete_field('field_si_protocollo');
   @field_delete_field('field_si_visto');
-  @field_delete_field('field_si_accolto');
+  @field_delete_field('field_si_acquisita');
+  @field_delete_field('field_si_concedibile');
   @field_delete_field('field_si_motivazioni');
 //  variable_del('supporto_istanze_node_types');
 }

@@ -21,15 +21,15 @@ function supporto_istanze_permission() {
   return array(
     'protocollato' => array(
       'title' => 'Protocollo',
-      'description' => 'Impostare o togliere il campo <em>Protocollato</em>',
+      'description' => 'Impostare o togliere il campo <em>Protocollo</em>',
     ),
     'visto' => array(
       'title' => 'Visto del DS',
-      'description' => 'Impostare o togliere il campo <em>Visto del DS</em>',
+      'description' => 'Visto del DS per la concessione di una istanza',
     ),
-    'accolto' => array(
-      'title' => 'Istanza accolta',
-      'description' => 'Accogliere o rifiutare una istanza',
+    'acquisito' => array(
+      'title' => 'Istanza concedibile o acquisita',
+      'description' => 'Controllare se una istanza può procedere nel suo iter',
     ),
   );
 }
@@ -142,19 +142,21 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
   $input = $form_state['values'];
   db_update('supporto_istanze')
   ->fields(array(
-    'accolto_stato' => $input['is_ok'],
-    'accolto_data' => time(),
+    $input['field'] . '_stato' => $input['is_ok'],
+    $input['field'] . '_data' => time(),
     'motivazioni' => $input['reasons'],
     ))
   ->condition('tid', $input['tid'])
   ->execute();
-  drupal_set_message('Salvato esito istanza <em>' . $input['submission'] . '</em>.');
-  _supporto_istanze_email($input);
+  drupal_set_message('Salvato campo istanza <em>' . $input['submission'] . '</em>.');
+  if (!($input['field'] == 'concedibile' && $input['is_ok'] == 1)) {
+    _supporto_istanze_email($input);
+  }
   overlay_close_dialog('', array('external' => TRUE));
   $form_state['redirect'] = FALSE;
 }
 
-function supporto_istanze_reasons_form($form, &$form_state) {
+function supporto_istanze_reasons_form($form, &$form_state, $campo) {
   $tid = arg(5);
   $sid = arg(3);
   $result = db_query('SELECT * FROM {supporto_istanze} WHERE tid = :tid', array(':tid' => $tid));
@@ -163,7 +165,7 @@ function supporto_istanze_reasons_form($form, &$form_state) {
   }
   $data = $result->fetchAssoc();
   $uid = $data['user_id'];
-  $checked = $data['accolto_stato'];
+  $checked = $data[$campo . '_stato'];
   $reasons = $data['motivazioni'];
 
   $form['tid'] = array(
@@ -181,22 +183,59 @@ function supporto_istanze_reasons_form($form, &$form_state) {
     '#name' => 'submission',
     '#value' => $sid,
   );
-  $form['is_ok'] = array(
-    '#type' => 'radios',
-    '#title' => 'accogli o respingi:',
-    '#options' => array(
-      1 => 'istanza accolta',
-      2 => 'istanza respinta',
-    ),
-    '#default_value' => $checked? $checked : 1,
-    '#attributes' => array(
-      'title' => 'Selezionare per cambiare lo stato',
-    ),
+  $form['field'] = array(
+    '#type' => 'value',
+    '#name' => 'field',
+    '#value' => $campo,
   );
+  switch ($campo) {
+    case 'acquisito':
+    $form['is_ok'] = array(
+      '#type' => 'radios',
+      '#title' => 'acquisisci o respingi:',
+      '#options' => array(
+        1 => 'Acquisisci istanza',
+        2 => 'Respingi istanza',
+      ),
+      '#default_value' => $checked? $checked : 1,
+      '#attributes' => array(
+        'title' => 'Selezionare per cambiare lo stato',
+      ),
+    );
+    break;
+    case 'visto':
+    $form['is_ok'] = array(
+      '#type' => 'radios',
+      '#title' => 'Concedi o respingi:',
+      '#options' => array(
+        1 => 'Si concede',
+        2 => 'Non si concede',
+      ),
+      '#default_value' => $checked? $checked : 1,
+      '#attributes' => array(
+        'title' => 'Selezionare per cambiare lo stato',
+      ),
+    );
+    break;
+    case 'concedibile':
+    $form['is_ok'] = array(
+      '#type' => 'radios',
+      '#title' => 'Valuta istanza:',
+      '#options' => array(
+        1 => 'Istanza concedibile',
+        2 => 'Istanza non concedibile',
+      ),
+      '#default_value' => $checked? $checked : 1,
+      '#attributes' => array(
+        'title' => 'Selezionare per cambiare lo stato',
+      ),
+    );
+    break;
+  }
   $form['reasons'] = array(
     '#name' => 'reasons',
     '#type' => 'textarea',
-    '#title' => 'motivazioni, specie in caso di istanza respinta:',
+    '#title' => 'motivazioni, in caso di istanza respinta:',
     '#default_value' => $reasons,
   );
   $form['submit'] = array(
@@ -277,7 +316,9 @@ function _supporto_istanze_reset_field($fieldname, $markupvalue, $label, $descri
 
 function supporto_istanze_admin_paths() {
   $paths = array(
-    'node/*/submission/*/istanza/*' => TRUE,
+    'node/*/submission/*/istanza_acquisisci/*' => TRUE,
+    'node/*/submission/*/istanza_concedi/*' => TRUE,
+    'node/*/submission/*/istanza_visto/*' => TRUE,
   );
   return $paths;
 } 
@@ -285,11 +326,29 @@ function supporto_istanze_admin_paths() {
 function supporto_istanze_menu() {
   $items = array();
 
-  $items['node/%node/submission/%/istanza/%'] = array(
-    'title' => 'Accogli istanza',
+  $items['node/%node/submission/%/istanza_acquisisci/%'] = array(
+    'title' => 'Acquisisci istanza',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('supporto_istanze_reasons_form'),
-    'access arguments' => array('accolto'),
+    'page arguments' => array('supporto_istanze_reasons_form','acquisito'),
+    'access arguments' => array('acquisito'),
+    'weight' => 2,
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['node/%node/submission/%/istanza_concedi/%'] = array(
+    'title' => 'Concedi istanza',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('supporto_istanze_reasons_form','concedibile'),
+    'access arguments' => array('acquisito'),
+    'weight' => 2,
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['node/%node/submission/%/istanza_visto/%'] = array(
+    'title' => 'Concedi istanza',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('supporto_istanze_reasons_form','visto'),
+    'access arguments' => array('visto'),
     'weight' => 2,
     'type' => MENU_NORMAL_ITEM,
   );

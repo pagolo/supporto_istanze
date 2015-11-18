@@ -14,5 +14,5 @@
 
 ?>
 
-<div class = "istanze_form" style="height:1.4em"><span><?php print $content ?></span></div>
+<div class = "istanze_form" style="height:1.4em"><?php print $content ?></div>
 
