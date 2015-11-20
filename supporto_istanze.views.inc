@@ -29,7 +29,7 @@ function supporto_istanze_views_pre_render(&$view) {
       $data = $result->fetchAssoc();
     }
     if (isset($node->field_field_si_protocollo)) {
-      if (user_access('protocollato')) {
+      if (user_access('protocollato') && ($nodata || ((isset($node->field_field_si_acquisita) && is_null($data['acquisito_stato'])) || (isset($node->field_field_si_concedibile) && is_null($data['concedibile_stato']))))) {
         $ass_array = array();
         $ass_array['my_checkbox'] = drupal_get_form('supporto_istanze_form_'.$i, $sid, $uid, $nodata? 0 : $data['tid'], $nodata? 0 : $data['protocollo_stato'], 'protocollo');
         $html = theme('supporto_istanze_views', array ('content' => '', 'assoc' => $ass_array));
@@ -64,7 +64,7 @@ function supporto_istanze_views_pre_render(&$view) {
       $view->result[$i]->field_field_si_acquisita[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
     }
     if (isset($node->field_field_si_concedibile)) {
-      if (user_access('acquisito') && !$nodata && $data['protocollo_stato'] == 1) {
+      if (user_access('acquisito') && !$nodata && $data['protocollo_stato'] == 1 && is_null($data['visto_stato'])) {
         switch ($data['concedibile_stato']) {
           case 0:
             $status = 'da valutare';
