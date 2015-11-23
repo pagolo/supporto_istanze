@@ -3,8 +3,60 @@
  * hook for the Views module
  */
 /**
- * Implements hook_views_pre_render().
+ * Implements hook_views_data().
  */ 
+function supporto_istanze_views_data() {
+  $data = array();
+  $data['supporto_istanze']['table']['group'] = 'Supporto istanze';
+  $data['supporto_istanze']['table']['join'] = array(
+    'webform_submissions' => array(
+      'left_field' => 'sid',
+      'field' => 'submission_id',
+    ),
+  );
+  $data['supporto_istanze']['tid'] = array(
+    'title' => 'Puntatore a istanza',
+    'help' => 'Relazione tra submission e procedura.',
+    'relationship' => array(
+      'base' => 'webform_submissions',
+      'handler' => 'views_handler_relationship',
+      'label' => 'Istanza',
+    ),
+    // There is no argument here; if you need an argument, add the relationship
+    // and use the node: nid argument.
+  );
+  $data['supporto_istanze']['motivazioni'] = array(
+    'title' => t('Motivazioni'),
+    'help' => t('Le motivazioni per il rifiuto della istanza.'),
+    'field' => array(
+      'handler' => 'supporto_istanze_motivazioni_views_handler_field',
+      //'handler' => 'views_handler_field_markup',
+      //'format' => 'full_html',
+      'click sortable' => FALSE, // This is use by the table display plugin.
+    ),
+  );
+
+  return $data;
+}
+
+/**
+ * Implementation of hook_views_handlers().
+ */
+function supporto_istanze_views_handlers() {
+  return array(
+  'info' => array(
+    'path' => drupal_get_path('module', 'supporto_istanze'),
+    ),
+  'handlers' => array(
+    'supporto_istanze_motivazioni_views_handler_field' => array(
+      'parent' => 'views_handler_field',
+     ),        
+    ),
+  );
+}
+/**
+ * Implements hook_views_pre_render().
+ */
 function supporto_istanze_views_pre_render(&$view) {
   static $css_done = FALSE;
   if (!$css_done) {
@@ -17,6 +69,7 @@ function supporto_istanze_views_pre_render(&$view) {
   }
   $msg = FALSE;
   foreach ($view->result as $i => $node) {
+    //dsm($node);
     if (!isset($node->webform_submissions_node_sid) || !isset($node->users_webform_submissions_uid)) {
       continue;
     }
@@ -107,7 +160,8 @@ function supporto_istanze_views_pre_render(&$view) {
       }
       $view->result[$i]->field_field_si_visto[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
     }
-    if (isset($node->field_field_si_motivazioni)) {
+    /*
+    if (isset($node->webform_submissions_node__supporto_istanze_motivazioni)) {
       if ($nodata) {
         $html = '---';
       } else {
@@ -117,8 +171,10 @@ function supporto_istanze_views_pre_render(&$view) {
         $html = '<div id=\'tid_' . $data['tid'] . '\' style="display:none" onmouseover=\'this.innerHTML="' . $full . '"\' onmouseout=\'this.innerHTML="' . $abbr . '"\' class=\'motivazioni\'>' . $data['motivazioni'] . '</div>';
         $html .= "<script type=\"text/javascript\">\n//<![CDATA[\nvar div=document.getElementById('tid_".$data['tid']."');\ndiv.innerHTML=\"" . $abbr . "\";\ndiv.style.display='block';\n//]]>\n</script>";
       }
-      $view->result[$i]->field_field_si_motivazioni[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
+      //$view->result[$i]->field_field_si_motivazioni[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
+      $view->result[$i]->webform_submissions_node__supporto_istanze_motivazioni = $html;
     }
+    */
   }
 }
 
