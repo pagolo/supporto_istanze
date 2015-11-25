@@ -14,8 +14,9 @@ function supporto_istanze_views_data() {
       'field' => 'submission_id',
     ),
   );
+/*
   $data['supporto_istanze']['tid'] = array(
-    'title' => 'Puntatore a istanza',
+    'title' => 'Chiave di procedura',
     'help' => 'Relazione tra submission e procedura.',
     'relationship' => array(
       'base' => 'webform_submissions',
@@ -25,9 +26,64 @@ function supporto_istanze_views_data() {
     // There is no argument here; if you need an argument, add the relationship
     // and use the node: nid argument.
   );
+*/
+  $data['supporto_istanze']['tid'] = array(
+    'title' => 'Chiave di istanza',
+    'help' => 'Indice primario tabella supporto_istanze.',
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'label' => 'Istanza',
+    ),
+    // There is no argument here; if you need an argument, add the relationship
+    // and use the node: nid argument.
+  );
+  $data['supporto_istanze']['protocollo_stato'] = array(
+    'title' => 'Protocollo',
+    'help' => 'Istanza protocollata.',
+    'field' => array(
+      'handler' => 'supporto_istanze_protocollo_views_handler_field',
+      'click sortable' => FALSE, // This is use by the table display plugin.
+    ),
+  );
+  $data['supporto_istanze']['acquisito_stato'] = array(
+    'title' => 'Acquisito',
+    'help' => 'Istanza acquisita.',
+    'field' => array(
+      'handler' => 'views_handler_field_markup',
+      'format' => 'full_html',
+      'click sortable' => FALSE, // This is use by the table display plugin.
+    ),
+  );
+  $data['supporto_istanze']['concedibile_stato'] = array(
+    'title' => 'Verifica ufficio',
+    'help' => 'Istanza concedibile.',
+    'field' => array(
+      'handler' => 'views_handler_field_markup',
+      'format' => 'full_html',
+      'click sortable' => FALSE, // This is use by the table display plugin.
+    ),
+  );
+  $data['supporto_istanze']['visto_stato'] = array(
+    'title' => 'Visto del DS',
+    'help' => 'Istanza accolta.',
+    'field' => array(
+      'handler' => 'views_handler_field_markup',
+      'format' => 'full_html',
+      'click sortable' => FALSE, // This is use by the table display plugin.
+    ),
+  );
+  $data['supporto_istanze']['evaso_data'] = array(
+    'title' => 'Evaso',
+    'help' => 'Istanza evasa il...',
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'format' => 'full_html',
+      'click sortable' => FALSE, // This is use by the table display plugin.
+    ),
+  );
   $data['supporto_istanze']['motivazioni'] = array(
-    'title' => t('Motivazioni'),
-    'help' => t('Le motivazioni per il rifiuto della istanza.'),
+    'title' => 'Motivazioni',
+    'help' => 'Le motivazioni per il rifiuto della istanza.',
     'field' => array(
       'handler' => 'supporto_istanze_motivazioni_views_handler_field',
       //'handler' => 'views_handler_field_markup',
@@ -178,6 +234,3 @@ function supporto_istanze_views_pre_render(&$view) {
   }
 }
 
-function _supporto_istanze_abbrevia_testo($text) {
-  return substr($text, 0, 8) . (strlen($text) > 8 ? '...(segue)' : '');
-}

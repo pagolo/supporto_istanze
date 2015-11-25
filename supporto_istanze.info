@@ -8,3 +8,4 @@ dependencies[] = ctools
 
 ; Views Handlers
 files[] = supporto_istanze_motivazioni_views_handler_field.inc
+files[] = supporto_istanze_protocollo_views_handler_field.inc

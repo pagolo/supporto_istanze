@@ -139,17 +139,27 @@ function supporto_istanze_mail($key, &$message, $params) {
 }
   
 function supporto_istanze_reasons_form_submit($form, &$form_state) {
+  $evaso = FALSE;
   $input = $form_state['values'];
+  if (!($input['field'] == 'concedibile' && $input['is_ok'] == 1)) {
+    $evaso = TRUE;
+    $myfields = array(
+      $input['field'] . '_stato' => $input['is_ok'],
+      'evaso_data' => time(),
+      'motivazioni' => $input['reasons'],
+    );
+  } else {
+    $myfields = array(
+      $input['field'] . '_stato' => $input['is_ok'],
+      'motivazioni' => $input['reasons'],
+    );
+  }
   db_update('supporto_istanze')
-  ->fields(array(
-    $input['field'] . '_stato' => $input['is_ok'],
-    $input['field'] . '_data' => time(),
-    'motivazioni' => $input['reasons'],
-    ))
+  ->fields($myfields)
   ->condition('tid', $input['tid'])
   ->execute();
   drupal_set_message('Salvato campo istanza <em>' . $input['submission'] . '</em>.');
-  if (!($input['field'] == 'concedibile' && $input['is_ok'] == 1)) {
+  if ($evaso) {
     _supporto_istanze_email($input);
   }
   overlay_close_dialog('', array('external' => TRUE));
@@ -252,7 +262,7 @@ function _supporto_istanze_save_selection($input) {
       'user_id' => $input['user'],
       'submission_id' => $input['submission'],
       $input['field'] . '_stato' => $input['is_ok'],
-      $input['field'] . '_data' => time(),
+      'evaso_data' => ($input['field'] == 'protocollo' || ($input['field'] == 'concedibile' && $input['is_ok'] < 2)) ? NULL : time(),
       ))
     ->execute();
   } else {
@@ -261,57 +271,12 @@ function _supporto_istanze_save_selection($input) {
       'user_id' => $input['user'],
       'submission_id' => $input['submission'],
       $input['field'] . '_stato' => $input['is_ok'],
-      $input['field'] . '_data' => time(),
+      'evaso_data' => ($input['field'] == 'protocollo' || ($input['field'] == 'concedibile' && $input['is_ok'] < 2)) ? NULL : time(),
       ))
     ->condition('tid', $input['tid'])
     ->execute();
   }
   drupal_set_message('Salvato campo <em>'. $input['field'] . '</em> istanza <em>' . $input['submission'] . '</em>');
-}
-
-function _supporto_istanze_reset_field($fieldname, $markupvalue, $label, $description) {
-  // Check if our field is not already created.
-  if (!field_info_field($fieldname)) {
-    $field = array(
-      'field_name' => $fieldname, 
-      'type' => 'markup', 
-      'settings' => array(
-        'default_value' => '',
-        'markup' => array (
-          'value' => $markupvalue,
-          'format' => 'full_html',
-        )
-      )
-    );
-    field_create_field($field);
-  }
-  $node_types = node_type_get_types();
-  foreach ($node_types as $node_type) {
-    $bundle = $node_type->type;
-    if ($bundle != 'istanze_del_personale') continue;
-    if (!field_info_instance('node', $fieldname, $bundle)) {
-      $instance = array(
-        'field_name' => $fieldname, 
-        'entity_type' => 'node', 
-        'label' => $label,
-        'description' => $description,
-        'type' => 'markup', 
-        'bundle' => $bundle, 
-        'widget' => array(
-          'type' => 'markup',
-        ),
-        'default_value' => '',
-        'settings' => array(
-          'defau:-)lt_value' => '',
-          'markup' => array (
-             'value' => $markupvalue,
-             'format' => 'full_html',
-          )
-        )
-      );
-      field_create_instance($instance);
-    }
-  }
 }
 
 function supporto_istanze_admin_paths() {
