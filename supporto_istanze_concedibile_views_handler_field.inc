@@ -25,7 +25,8 @@ class supporto_istanze_concedibile_views_handler_field extends views_handler_fie
       $html = '---';
     } else {
       $si_no = ($value == 1 ? 'si' : 'no');
-      $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/' . $si_no . '.png" alt="concedibile: ' . $si_no . '" />';
+      $msg = ($value == 2? 'non ' : '') . 'concedibile';
+      $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/' . $si_no . '.png" alt="' . $msg . '" title="' . $msg . '" />';
     }
     return $html;
   }

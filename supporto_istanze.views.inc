@@ -48,8 +48,7 @@ function supporto_istanze_views_data() {
     'title' => 'Acquisito',
     'help' => 'Istanza acquisita.',
     'field' => array(
-      'handler' => 'views_handler_field_markup',
-      'format' => 'full_html',
+      'handler' => 'supporto_istanze_acquisito_views_handler_field',
       'click sortable' => FALSE,
     ),
   );
@@ -99,6 +98,9 @@ function supporto_istanze_views_handlers() {
     ),
   'handlers' => array(
     'supporto_istanze_protocollo_views_handler_field' => array(
+      'parent' => 'views_handler_field',
+     ),        
+    'supporto_istanze_acquisito_views_handler_field' => array(
       'parent' => 'views_handler_field',
      ),        
     'supporto_istanze_concedibile_views_handler_field' => array(
