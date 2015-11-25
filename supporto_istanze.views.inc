@@ -32,7 +32,6 @@ function supporto_istanze_views_data() {
     'help' => 'Indice primario tabella supporto_istanze.',
     'field' => array(
       'handler' => 'views_handler_field_numeric',
-      'label' => 'Istanza',
     ),
     // There is no argument here; if you need an argument, add the relationship
     // and use the node: nid argument.
@@ -42,7 +41,7 @@ function supporto_istanze_views_data() {
     'help' => 'Istanza protocollata.',
     'field' => array(
       'handler' => 'supporto_istanze_protocollo_views_handler_field',
-      'click sortable' => FALSE, // This is use by the table display plugin.
+      'click sortable' => FALSE,
     ),
   );
   $data['supporto_istanze']['acquisito_stato'] = array(
@@ -51,34 +50,31 @@ function supporto_istanze_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_markup',
       'format' => 'full_html',
-      'click sortable' => FALSE, // This is use by the table display plugin.
+      'click sortable' => FALSE,
     ),
   );
   $data['supporto_istanze']['concedibile_stato'] = array(
     'title' => 'Verifica ufficio',
     'help' => 'Istanza concedibile.',
     'field' => array(
-      'handler' => 'views_handler_field_markup',
-      'format' => 'full_html',
-      'click sortable' => FALSE, // This is use by the table display plugin.
+      'handler' => 'supporto_istanze_concedibile_views_handler_field',
+      'click sortable' => FALSE,
     ),
   );
   $data['supporto_istanze']['visto_stato'] = array(
     'title' => 'Visto del DS',
     'help' => 'Istanza accolta.',
     'field' => array(
-      'handler' => 'views_handler_field_markup',
-      'format' => 'full_html',
-      'click sortable' => FALSE, // This is use by the table display plugin.
+      'handler' => 'supporto_istanze_visto_views_handler_field',
+      'click sortable' => FALSE,
     ),
   );
   $data['supporto_istanze']['evaso_data'] = array(
-    'title' => 'Evaso',
+    'title' => 'Evaso il',
     'help' => 'Istanza evasa il...',
     'field' => array(
       'handler' => 'views_handler_field_date',
-      'format' => 'full_html',
-      'click sortable' => FALSE, // This is use by the table display plugin.
+      'click sortable' => FALSE,
     ),
   );
   $data['supporto_istanze']['motivazioni'] = array(
@@ -86,9 +82,7 @@ function supporto_istanze_views_data() {
     'help' => 'Le motivazioni per il rifiuto della istanza.',
     'field' => array(
       'handler' => 'supporto_istanze_motivazioni_views_handler_field',
-      //'handler' => 'views_handler_field_markup',
-      //'format' => 'full_html',
-      'click sortable' => FALSE, // This is use by the table display plugin.
+      'click sortable' => FALSE,
     ),
   );
 
@@ -104,6 +98,15 @@ function supporto_istanze_views_handlers() {
     'path' => drupal_get_path('module', 'supporto_istanze'),
     ),
   'handlers' => array(
+    'supporto_istanze_protocollo_views_handler_field' => array(
+      'parent' => 'views_handler_field',
+     ),        
+    'supporto_istanze_concedibile_views_handler_field' => array(
+      'parent' => 'views_handler_field',
+     ),        
+    'supporto_istanze_visto_views_handler_field' => array(
+      'parent' => 'views_handler_field',
+     ),        
     'supporto_istanze_motivazioni_views_handler_field' => array(
       'parent' => 'views_handler_field',
      ),        
@@ -119,6 +122,7 @@ function supporto_istanze_views_pre_render(&$view) {
     drupal_add_css(drupal_get_path('module', 'supporto_istanze') . '/' . 'stylesheet.css');
     $css_done = TRUE;
   }
+/*
   $uid = $GLOBALS['user']->uid;
   if (!$uid) {
     return;
@@ -216,7 +220,6 @@ function supporto_istanze_views_pre_render(&$view) {
       }
       $view->result[$i]->field_field_si_visto[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
     }
-    /*
     if (isset($node->webform_submissions_node__supporto_istanze_motivazioni)) {
       if ($nodata) {
         $html = '---';
@@ -230,7 +233,7 @@ function supporto_istanze_views_pre_render(&$view) {
       //$view->result[$i]->field_field_si_motivazioni[0]['rendered'][] = array ('#markup' => $html, '#access' => '1');
       $view->result[$i]->webform_submissions_node__supporto_istanze_motivazioni = $html;
     }
-    */
   }
+    */
 }
 

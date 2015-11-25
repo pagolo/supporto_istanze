@@ -5,7 +5,6 @@ class supporto_istanze_motivazioni_views_handler_field extends views_handler_fie
   }
   function render($values) {
     static $count = 1;
-    //dsm($values);
     $value = check_plain($this->get_value($values));
     if (empty($value)) {
       $html = '---';

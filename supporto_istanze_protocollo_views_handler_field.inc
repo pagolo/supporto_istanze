@@ -20,7 +20,7 @@ class supporto_istanze_protocollo_views_handler_field extends views_handler_fiel
     elseif ($nodata || $value == 0) {
       $html = '---';
     } else {
-      $html = '<img src="/sites/all/modules/supporto_istanze/icone/si.png" al="protocollato">'; // sostituire con icona
+      $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/si.png" alt="protocollato" />'; // sostituire con icona
     }
     ++$i;
     return $html;
