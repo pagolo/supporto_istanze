@@ -3,6 +3,8 @@
  * @file
  */
 
+drupal_add_css(drupal_get_path('module', 'supporto_istanze') . '/' . 'stylesheet.css');
+
 /**
  * Implements hook_views_api().
  */
