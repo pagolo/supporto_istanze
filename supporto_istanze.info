@@ -11,4 +11,4 @@ files[] = supporto_istanze_motivazioni_views_handler_field.inc
 files[] = supporto_istanze_protocollo_views_handler_field.inc
 files[] = supporto_istanze_concedibile_views_handler_field.inc
 files[] = supporto_istanze_visto_views_handler_field.inc
-files[] = supporto_istanze_acquisito_views_handler_field.inc
+

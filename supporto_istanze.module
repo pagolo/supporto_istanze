@@ -143,7 +143,7 @@ function supporto_istanze_mail($key, &$message, $params) {
 function supporto_istanze_reasons_form_submit($form, &$form_state) {
   $evaso = FALSE;
   $input = $form_state['values'];
-  if (!($input['field'] == 'concedibile' && $input['is_ok'] == 1)) {
+  if (!($input['realfield'] == 'concedibile' && $input['is_ok'] == 1)) {
     $evaso = TRUE;
     $myfields = array(
       $input['field'] . '_stato' => $input['is_ok'],
@@ -177,7 +177,7 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
   }
   $data = $result->fetchAssoc();
   $uid = $data['user_id'];
-  $checked = $data[$campo . '_stato'];
+  $checked = $data[($campo == 'acquisito' ? 'concedibile' : $campo) . '_stato'];
   $reasons = $data['motivazioni'];
 
   $form['tid'] = array(
@@ -187,7 +187,7 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
   );
   $form['uid'] = array(
     '#type' => 'value',
-    '#name' => 'tid',
+    '#name' => 'uid',
     '#value' => $uid,
   );
   $form['submission'] = array(
@@ -198,6 +198,11 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
   $form['field'] = array(
     '#type' => 'value',
     '#name' => 'field',
+    '#value' => $campo == 'acquisito' ? 'concedibile' : $campo,
+  );
+  $form['realfield'] = array(
+    '#type' => 'value',
+    '#name' => 'realfield',
     '#value' => $campo,
   );
   switch ($campo) {

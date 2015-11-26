@@ -6,8 +6,13 @@ class supporto_istanze_visto_views_handler_field extends views_handler_field {
     $nid = $values->webform_submissions_node_nid;
     $tid = $values->webform_submissions_node__supporto_istanze_tid;
     $conc = $values->webform_submissions_node__supporto_istanze_concedibile_stato;
+    $acquisisci = FALSE;
+    $nodo = node_load($nid);
+    if (isset($nodo->field_acquisisci['und'][0]['value']) && $nodo->field_acquisisci['und'][0]['value'] == 1) {
+      $acquisisci = TRUE;
+    }
     $nodata = is_null($tid);
-    if (user_access('visto') && !$nodata && $conc == 1) {
+    if (user_access('visto') && !$nodata && $conc == 1 && $acquisisci == FALSE) {
       $status = 'da valutare';
       switch ($value) {
         case 1:

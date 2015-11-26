@@ -29,6 +29,7 @@ function supporto_istanze_views_data() {
       'click sortable' => FALSE,
     ),
   );
+/*
   $data['supporto_istanze']['acquisito_stato'] = array(
     'title' => 'Acquisito',
     'help' => 'Istanza acquisita.',
@@ -37,6 +38,7 @@ function supporto_istanze_views_data() {
       'click sortable' => FALSE,
     ),
   );
+*/
   $data['supporto_istanze']['concedibile_stato'] = array(
     'title' => 'Verifica ufficio',
     'help' => 'Istanza concedibile.',
@@ -84,10 +86,12 @@ function supporto_istanze_views_handlers() {
   'handlers' => array(
     'supporto_istanze_protocollo_views_handler_field' => array(
       'parent' => 'views_handler_field',
-     ),        
+     ),
+/*        
     'supporto_istanze_acquisito_views_handler_field' => array(
       'parent' => 'views_handler_field',
-     ),        
+     ),
+*/        
     'supporto_istanze_concedibile_views_handler_field' => array(
       'parent' => 'views_handler_field',
      ),        

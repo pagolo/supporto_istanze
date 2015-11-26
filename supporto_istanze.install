@@ -59,11 +59,13 @@ function supporto_istanze_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
+/*
       'acquisito_stato' => array(
         'description' => 'accept status',
         'type' => 'int',
         'not null' => FALSE,
       ),
+*/
       'visto_stato' => array(
         'description' => 'visa status',
         'type' => 'int',
