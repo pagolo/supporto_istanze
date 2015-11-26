@@ -21,6 +21,18 @@ function supporto_istanze_views_data() {
       'handler' => 'views_handler_field_numeric',
     ),
   );
+  $data['supporto_istanze']['submission_id'] = array(
+    'title' => 'Chiave di submission',
+    'help' => 'Indice primario tabella webform_submissions.',
+    'relationship' => array(
+      'base' => 'webform_submissions', // The name of the table to join with.
+      'base field' => 'sid', // The name of the field on the joined table.
+      'handler' => 'views_handler_relationship',
+      'label' => 'Relazione supporto_istanze',
+      'title' => 'Relazione con la tabella delle Submissions',
+      'help' =>'Collega le tabelle webform_submissions e supporto_istanze',
+    ),
+  );
   $data['supporto_istanze']['protocollo_stato'] = array(
     'title' => 'Protocollo',
     'help' => 'Istanza protocollata.',
