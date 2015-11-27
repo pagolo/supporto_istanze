@@ -254,12 +254,19 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
     '#type' => 'textarea',
     '#title' => 'motivazioni, in caso di istanza respinta:',
     '#default_value' => $reasons,
+    '#element_validate' => array('_supporto_istanze_textarea_validate'),
   );
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Salva',
   );
   return $form;
+}
+
+function _supporto_istanze_textarea_validate($element, &$form_state, $form) {
+  if (empty($element['#value']) && $form_state['input']['is_ok'] == 2) {
+    form_error($element, 'Campo richiesto per istanza respinta.');
+  }
 }
 
 function _supporto_istanze_save_selection($input) {
