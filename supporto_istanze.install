@@ -4,16 +4,10 @@
  * Module installation.
  */
 
-/**
  * Implements hook_enable().
 function supporto_istanze_enable() {
-  _supporto_istanze_reset_field('field_si_protocollo', 'Campo relativo al protocollo', 'Protocollo', 'Campo per gestire il protocollo.');
-  _supporto_istanze_reset_field('field_si_visto', 'Campo relativo al visto del DS', 'Visto del DS', 'Campo per gestire il visto del DS.');
-  _supporto_istanze_reset_field('field_si_acquisita', 'Campo relativo all&#39;acquisizione', 'Acquisita', 'Campo per l&#39;acquisizione dell&#39;istanza.');
-  _supporto_istanze_reset_field('field_si_concedibile', 'Campo relativo alla possibilità di concedere l&#39;autorizzazione', 'Concedibile', 'Campo per la concedibilità della richiesta.');
-  _supporto_istanze_reset_field('field_si_motivazioni', 'Campo relativo alle motivazioni', 'Motivazioni', 'Campo per le motivazioni per cui la domanda è stata respinta/non concessa.');
+  _supporto_istanze_acquisisci_reset_field();
 }
- */
 
 /**
  * Implements hook_install().
@@ -90,12 +84,7 @@ function supporto_istanze_schema() {
 /**
  * Implements hook_uninstall().
  *
+ */
 function supporto_istanze_uninstall() {
-  @field_delete_field('field_si_protocollo');
-  @field_delete_field('field_si_visto');
-  @field_delete_field('field_si_acquisita');
-  @field_delete_field('field_si_concedibile');
-  @field_delete_field('field_si_motivazioni');
-//  variable_del('supporto_istanze_node_types');
+  @field_delete_field('field_acquisisci');
 }
-*/

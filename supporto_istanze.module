@@ -335,3 +335,46 @@ function supporto_istanze_menu() {
 
   return $items;
 }
+
+function _supporto_istanze_acquisisci_reset_field() {
+  $fieldname = 'field_acquisisci';
+  // Check if our field is not already created.
+  if (!field_info_field($fieldname)) {
+    $field = array(
+      'field_name' => $fieldname, 
+      'type'       => 'list_boolean',
+      'cardinality' => 1,
+      'settings'    => array(
+        'allowed_values' => array( 
+          0 => '',
+          1 => '',
+        ),
+      ),
+    );
+    field_create_field($field);
+  }
+  $node_types = node_type_get_types();
+  foreach ($node_types as $node_type) {
+    $bundle = $node_type->type;
+    if ($bundle != 'istanze_del_personale') continue;
+    if (!field_info_instance('node', $fieldname, $bundle)) {
+      $instance = array(
+        'field_name' => $fieldname, 
+        'entity_type' => 'node', 
+        'label' => 'Acquisisci soltanto, senza visto del DS',
+        'description' => 'Questo campo serve per attivare la modalità acquisisci.',
+//        'type' => 'list_boolean', 
+        'bundle' => $bundle, 
+        'default_value' => 0,
+        'widget'      => array(
+          'type'     => 'options_onoff',
+          'settings' => array(
+            'display_label' => 1,
+            'default_value' => 0,
+          ),
+        ),
+      );
+      field_create_instance($instance);
+    }
+  }
+}
