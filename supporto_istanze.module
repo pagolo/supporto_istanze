@@ -153,6 +153,7 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
   } else {
     $myfields = array(
       $input['field'] . '_stato' => $input['is_ok'],
+      'evaso_data' => NULL,
       'motivazioni' => $input['reasons'],
     );
   }
