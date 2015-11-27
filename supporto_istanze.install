@@ -2,9 +2,9 @@
 /**
  * @file
  * Module installation.
+ * Implements hook_enable().
  */
 
- * Implements hook_enable().
 function supporto_istanze_enable() {
   _supporto_istanze_acquisisci_reset_field();
 }
