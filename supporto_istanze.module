@@ -21,6 +21,10 @@ function supporto_istanze_views_api()
  */
 function supporto_istanze_permission() {
   return array(
+    'amministra istanze' => array(
+      'title' => 'Configurazione',
+      'description' => 'Amministrare la configurazione del modulo',
+    ),
     'protocollato' => array(
       'title' => 'Protocollo',
       'description' => 'Impostare o togliere il campo <em>Protocollo</em>',
@@ -306,6 +310,15 @@ function supporto_istanze_admin_paths() {
 function supporto_istanze_menu() {
   $items = array();
 
+  $items['admin/config/system/supporto_istanze'] = array(
+    'title' => 'Supporto istanze',
+    'description' => 'Modulo di supporto a "Istanze on line" (Porte Aperte sul Web)',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('supporto_istanze_admin_settings_form'),
+    'access arguments' => array('amministra istanze'),
+    'file' => 'supporto_istanze.admin.inc',
+  );
+
   $items['node/%node/submission/%/istanza_acquisisci/%'] = array(
     'title' => 'Acquisisci istanza',
     'page callback' => 'drupal_get_form',
@@ -336,8 +349,22 @@ function supporto_istanze_menu() {
   return $items;
 }
 
-function _supporto_istanze_acquisisci_reset_field() {
-  $fieldname = 'field_acquisisci';
+function _supporto_istanze_applies_to_bundle($nodetype, $apply_to = NULL) {
+  if (!$apply_to) {
+    $apply_to = variable_get('supporto_istanze_node_types', array('istanze_del_personale' => 'istanze_del_personale'));
+  }
+
+  // Check if key exists.
+  if (!(in_array($nodetype, array_keys($apply_to)))) {
+    return FALSE;
+  }
+
+  // Check if current node type is checked.
+  return ($apply_to[$nodetype] === $nodetype);
+}
+
+function _supporto_istanze_acquisisci_reset_field($form = NULL) {
+  $fieldname = 'field_si_acquisisci';
   // Check if our field is not already created.
   if (!field_info_field($fieldname)) {
     $field = array(
@@ -353,10 +380,18 @@ function _supporto_istanze_acquisisci_reset_field() {
     );
     field_create_field($field);
   }
+  if ($form) {
+    $apply_to = $form['supporto_istanze_content1']['supporto_istanze_node_types']['#value'];
+  }
+  else {
+    $apply_to = variable_get('supporto_istanze_node_types', array('istanze_del_personale' => 'istanze_del_personale'));
+  }
   $node_types = node_type_get_types();
   foreach ($node_types as $node_type) {
     $bundle = $node_type->type;
-    if ($bundle != 'istanze_del_personale') continue;
+    if (!_supporto_istanze_applies_to_bundle($bundle, $apply_to)) {
+      continue;
+    }
     if (!field_info_instance('node', $fieldname, $bundle)) {
       $instance = array(
         'field_name' => $fieldname, 

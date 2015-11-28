@@ -9,7 +9,7 @@ class supporto_istanze_concedibile_views_handler_field extends views_handler_fie
     $visto = $values->webform_submissions_node__supporto_istanze_visto_stato;
     $acquisisci = FALSE;
     $nodo = node_load($nid);
-    if (isset($nodo->field_acquisisci['und'][0]['value']) && $nodo->field_acquisisci['und'][0]['value'] == 1) {
+    if (isset($nodo->field_si_acquisisci['und'][0]['value']) && $nodo->field_si_acquisisci['und'][0]['value'] == 1) {
       $acquisisci = TRUE;
     }
     $nodata = is_null($tid);
