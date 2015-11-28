@@ -390,6 +390,9 @@ function _supporto_istanze_acquisisci_reset_field($form = NULL) {
   foreach ($node_types as $node_type) {
     $bundle = $node_type->type;
     if (!_supporto_istanze_applies_to_bundle($bundle, $apply_to)) {
+      if ($exists = field_info_instance('node', $fieldname, $bundle)) {
+        field_delete_instance($exists, FALSE);
+      }
       continue;
     }
     if (!field_info_instance('node', $fieldname, $bundle)) {
