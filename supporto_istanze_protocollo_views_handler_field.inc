@@ -2,12 +2,14 @@
 class supporto_istanze_protocollo_views_handler_field extends views_handler_field {
   function render($values) {
     static $i = 1;
+    $editabile = ($this->view->name != 'le_mie_istanze');
     $value = $this->get_value($values);
     $sid = $values->webform_submissions_node_sid;
     $uid = $values->users_webform_submissions_uid;
     $tid = $values->webform_submissions_node__supporto_istanze_tid;
     $nodata = is_null($values->webform_submissions_node__supporto_istanze_tid);
     if (user_access('protocollato') && 
+      $editabile &&
       ($nodata || 
         ((property_exists($values, 'webform_submissions_node__supporto_istanze_acquisito_stato') && 
           is_null($values->webform_submissions_node__supporto_istanze_acquisito_stato)) || 

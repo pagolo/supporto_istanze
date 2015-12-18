@@ -115,7 +115,11 @@ function _supporto_istanze_email($params) {
     $params['nomenodo'] = $data['title'];
     $params['timestamp'] = $data['submitted'];
   }
-  drupal_mail('supporto_istanze', 'notifica', $params['user']->mail, language_default(), $params);  
+  drupal_mail('supporto_istanze', 'notifica', $params['user']->mail, language_default(), $params);
+  $segret = variable_get('supporto_istanze_email', '');
+  if ($params['realfield'] == 'visto' && !empty($segret)) {
+    drupal_mail('supporto_istanze', 'segreteria', $segret, language_default(), $params);
+  } 
 }
 
 function supporto_istanze_mail($key, &$message, $params) {
@@ -140,6 +144,15 @@ function supporto_istanze_mail($key, &$message, $params) {
       if ($params['is_ok'] == 2) {
         $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
       }
+      break;
+    case 'segreteria':
+      $message['subject'] = @t('Notifica di istanza evasa (@nomesito)', $variables, $options);
+      $message['body'][] = @t("All'attenzione della segreteria,");
+      $message['body'][] = @t("L'istanza @istanza, n. @istanza_id del @data presentata da @nome, è stata @esito.", $variables, $options);
+      if ($params['is_ok'] == 2) {
+        $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
+      }
+      $message['body'][] = @t("Il Dirigente.");
       break;
   }
 }

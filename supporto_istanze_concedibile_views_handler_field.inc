@@ -1,6 +1,7 @@
 <?php
 class supporto_istanze_concedibile_views_handler_field extends views_handler_field {
   function render($values) {
+    $editabile = ($this->view->name != 'le_mie_istanze');
     $value = $this->get_value($values);
     $sid = $values->webform_submissions_node_sid;
     $nid = $values->webform_submissions_node_nid;
@@ -13,7 +14,7 @@ class supporto_istanze_concedibile_views_handler_field extends views_handler_fie
       $acquisisci = TRUE;
     }
     $nodata = is_null($tid);
-    if (user_access('acquisito') && !$nodata && $protoc == 1 && is_null($visto)) {
+    if (user_access('acquisito') && $editabile && !$nodata && $protoc == 1 && is_null($visto)) {
       $status = 'da valutare';
       switch ($value) {
         case 1:
