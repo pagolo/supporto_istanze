@@ -34,7 +34,7 @@ function supporto_istanze_admin_settings_form() {
     '#type' => 'textfield',
     '#title' => t('E-mail address'),
     '#maxlength' => 254,
-    '#description' => t('A valid e-mail address.'),
+    '#description' => 'indirizzo e-mail valido',
     '#required' => TRUE,
     '#default_value' => variable_get('supporto_istanze_email', ''),
   );

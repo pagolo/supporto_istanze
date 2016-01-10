@@ -55,6 +55,14 @@ function supporto_istanze_theme($existing, $type, $theme, $path) {
     ),
   );
 }
+/**
+ * Implements hook_node_view().
+ */
+function supporto_istanze_node_view($node) {
+  if (isset($node->content['field_si_acquisisci'])) {
+    $node->content['field_si_acquisisci'] = NULL;
+  }
+}
 
 function supporto_istanze_forms($form_id, $args) {
   $forms = array();
