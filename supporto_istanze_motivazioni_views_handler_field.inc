@@ -1,7 +1,8 @@
 <?php
 class supporto_istanze_motivazioni_views_handler_field extends views_handler_field {
   function abbrevia_testo($text) {
-    return substr($text, 0, 8) . (strlen($text) > 8 ? '...(segue)' : '');
+    $ret = strip_tags(substr($text, 0, 8) . (strlen($text) > 8 ? '...(segue)' : ''));
+    return $ret;
   }
   function render($values) {
     static $count = 1;
@@ -9,6 +10,9 @@ class supporto_istanze_motivazioni_views_handler_field extends views_handler_fie
     if (empty($value)) {
       $html = '---';
     } else {
+      $value = str_replace("\r\n",'<br />', $value);
+      $value = str_replace("\r",'<br />', $value);
+      $value = str_replace("\n",'<br />', $value);
       $full = str_replace(array('\'', '"'),'&#39;',$value);
       $abbr = $this->abbrevia_testo($value);
       $abbr = str_replace(array('\'', '"'),'&#39;',$abbr);

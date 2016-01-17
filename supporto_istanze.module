@@ -136,7 +136,7 @@ function supporto_istanze_mail($key, &$message, $params) {
   );
   $variables = array(
     '@nomesito' => variable_get('site_name', 'Drupal'),
-    '@nome' => empty($params['user']->field_cognome)? $params['user']->name : $params['user']->field_nome['und'][0]['value'] . ' ' .$params['user']->field_cognome['und'][0]['value'],
+    '@nome' => (empty($params['user']->field_cognome) || empty($params['user']->field_nome))? $params['user']->name : $params['user']->field_nome['und'][0]['value'] . ' ' .$params['user']->field_cognome['und'][0]['value'],
     '@istanza' => $params['nomenodo'],
     '@istanza_id' => $params['submission'],
     '@data' => format_date($params['timestamp'], 'custom', 'd/m/Y'),
