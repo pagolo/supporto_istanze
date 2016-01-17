@@ -1,7 +1,7 @@
 <?php
 class supporto_istanze_motivazioni_views_handler_field extends views_handler_field {
   function abbrevia_testo($text) {
-    $ret = strip_tags(substr($text, 0, 8) . (strlen($text) > 8 ? '...(segue)' : ''));
+    $ret = strip_tags(substr($text, 0, 8)) . (strlen($text) > 8 ? '...(segue)' : '');
     return $ret;
   }
   function render($values) {
