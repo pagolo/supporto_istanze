@@ -18,7 +18,8 @@ class supporto_istanze_acquisito_views_handler_field extends views_handler_field
           $status = 'non acquisito';
           break;            
       }
-      $html = sprintf('<a title=\'clic qui per valutare o modificare\' href=\'%s#overlay=node/%d/submission/%d/istanza_acquisisci/%d\'>%s</a>', current_path(), $nid, $sid, $tid,$status);
+      $a = drupal_get_destination();
+      $html = sprintf('<a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_acquisisci/%d?destination=%s\'>%s</a>', $nid, $sid, $tid, $a['destination'], $status);
     }
     elseif ($nodata || $value == 0) {
       $html = '---';

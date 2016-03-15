@@ -190,8 +190,6 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
   if ($evaso) {
     _supporto_istanze_email($input);
   }
-  overlay_close_dialog('', array('external' => TRUE));
-  $form_state['redirect'] = FALSE;
 }
 
 function supporto_istanze_reasons_form($form, &$form_state, $campo) {
@@ -327,6 +325,16 @@ function supporto_istanze_admin_paths() {
   );
   return $paths;
 } 
+
+/**
+ * Implements hook_admin_paths_alter().
+ */
+function supporto_istanze_admin_paths_alter(&$paths) {
+    $paths['node/%node/submission/%/istanza_acquisisci/%'] = TRUE;
+    $paths['node/%node/submission/%/istanza_concedi/%'] = TRUE;
+    $paths['node/%node/submission/%/istanza_visto/%'] = TRUE;
+}
+
 
 function supporto_istanze_menu() {
   $items = array();
