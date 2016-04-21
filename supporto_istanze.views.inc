@@ -7,21 +7,23 @@
  */ 
 function supporto_istanze_views_data() {
   $data = array();
-  $data['supporto_istanze']['table']['group'] = 'Supporto istanze';
-  $data['supporto_istanze']['table']['join'] = array(
+  $data['si']['table']['group'] = 'Supporto istanze';
+  $data['si']['table']['join'] = array(
     'webform_submissions' => array(
       'left_field' => 'sid',
       'field' => 'submission_id',
+      'table' => 'supporto_istanze',
     ),
   );
-  $data['supporto_istanze']['tid'] = array(
+  $data['si']['tid'] = array(
     'title' => 'Chiave di istanza',
     'help' => 'Indice primario tabella supporto_istanze.',
+    'table' => 'supporto_istanze',
     'field' => array(
       'handler' => 'views_handler_field_numeric',
     ),
   );
-  $data['supporto_istanze']['submission_id'] = array(
+  $data['si']['submission_id'] = array(
     'title' => 'Chiave di submission',
     'help' => 'Indice primario tabella webform_submissions.',
     'relationship' => array(
@@ -33,51 +35,57 @@ function supporto_istanze_views_data() {
       'help' =>'Collega le tabelle webform_submissions e supporto_istanze',
     ),
   );
-  $data['supporto_istanze']['protocollo_stato'] = array(
+  $data['si']['protocollo_stato'] = array(
     'title' => 'Protocollo',
     'help' => 'Istanza protocollata.',
+    'table' => 'supporto_istanze',
     'field' => array(
       'handler' => 'supporto_istanze_protocollo_views_handler_field',
       'click sortable' => FALSE,
     ),
   );
 /*
-  $data['supporto_istanze']['acquisito_stato'] = array(
+  $data['si']['acquisito_stato'] = array(
     'title' => 'Acquisito',
     'help' => 'Istanza acquisita.',
+    'table' => 'supporto_istanze',
     'field' => array(
       'handler' => 'supporto_istanze_acquisito_views_handler_field',
       'click sortable' => FALSE,
     ),
   );
 */
-  $data['supporto_istanze']['concedibile_stato'] = array(
+  $data['si']['concedibile_stato'] = array(
     'title' => 'Verifica ufficio',
     'help' => 'Istanza concedibile.',
+    'table' => 'supporto_istanze',
     'field' => array(
       'handler' => 'supporto_istanze_concedibile_views_handler_field',
       'click sortable' => FALSE,
     ),
   );
-  $data['supporto_istanze']['visto_stato'] = array(
+  $data['si']['visto_stato'] = array(
     'title' => 'Visto del DS',
     'help' => 'Istanza accolta.',
+    'table' => 'supporto_istanze',
     'field' => array(
       'handler' => 'supporto_istanze_visto_views_handler_field',
       'click sortable' => FALSE,
     ),
   );
-  $data['supporto_istanze']['evaso_data'] = array(
+  $data['si']['evaso_data'] = array(
     'title' => 'Evaso',
     'help' => 'Istanza evasa il...',
+    'table' => 'supporto_istanze',
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => FALSE,
     ),
   );
-  $data['supporto_istanze']['motivazioni'] = array(
+  $data['si']['motivazioni'] = array(
     'title' => 'Motivazioni',
     'help' => 'Le motivazioni per il rifiuto della istanza.',
+    'table' => 'supporto_istanze',
     'field' => array(
       'handler' => 'supporto_istanze_motivazioni_views_handler_field',
       'click sortable' => FALSE,

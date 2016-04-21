@@ -1,12 +1,12 @@
 <?php
 class supporto_istanze_acquisito_views_handler_field extends views_handler_field {
   function render($values) {
-    $editabile = ($this->view->name != 'le_mie_istanze');
+    $editabile = ($this->view->name != 'le_mie_istanze' && !($this->view->name == 'istanze_personale' && $this->view->current_display == 'page_1'));
     $value = $this->get_value($values);
     $sid = $values->webform_submissions_node_sid;
     $nid = $values->webform_submissions_node_nid;
-    $tid = $values->webform_submissions_node__supporto_istanze_tid;
-    $protoc = $values->webform_submissions_node__supporto_istanze_protocollo_stato;
+    $tid = $values->webform_submissions_node_si_tid;
+    $protoc = $values->webform_submissions_node_si_protocollo_stato;
     $nodata = is_null($tid);
     if (user_access('acquisito') && $editabile && !$nodata && $protoc == 1) {
       $status = 'da valutare';
