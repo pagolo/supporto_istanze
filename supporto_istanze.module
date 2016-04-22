@@ -125,7 +125,11 @@ function _supporto_istanze_email($params) {
   }
   drupal_mail('supporto_istanze', 'notifica', $params['user']->mail, language_default(), $params);
   $segret = variable_get('supporto_istanze_email', '');
-  if ($params['realfield'] == 'visto' && !empty($segret)) {
+  if  (empty($segret)) {
+    // @TODO: add warning message
+    return; 
+  }
+  if (variable_get('supporto_istanze_notification_email', FALSE) || $params['realfield'] == 'visto') {
     drupal_mail('supporto_istanze', 'segreteria', $segret, language_default(), $params);
   } 
 }
