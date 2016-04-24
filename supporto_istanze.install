@@ -6,7 +6,7 @@
  */
 
 function supporto_istanze_enable() {
-  _supporto_istanze_acquisisci_reset_field();
+  _supporto_istanze_reset_fields();
 }
 
 /**
@@ -87,5 +87,6 @@ function supporto_istanze_schema() {
  */
 function supporto_istanze_uninstall() {
   @field_delete_field('field_si_acquisisci');
+  @field_delete_field('field_si_email');
   variable_del('supporto_istanze_node_types');
 }

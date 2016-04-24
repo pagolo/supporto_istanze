@@ -62,6 +62,9 @@ function supporto_istanze_node_view($node) {
   if (isset($node->content['field_si_acquisisci'])) {
     $node->content['field_si_acquisisci'] = NULL;
   }
+  if (isset($node->content['field_si_email'])) {
+    $node->content['field_si_email'] = NULL;
+  }
 }
 
 function supporto_istanze_forms($form_id, $args) {
@@ -116,9 +119,15 @@ function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, 
   return $form;
 }
 
+function _supporto_istanze_check_email($nid) {
+  $node = node_load($nid);
+  if (!$node || !property_exists($node, 'field_si_email')) return false;
+  return $node->field_si_email['und'][0]['value']; 
+}
+
 function _supporto_istanze_email($params) {
   $params['user'] = user_load($params['uid']);
-  $data = db_query('SELECT title, submitted FROM {webform_submissions} AS s LEFT JOIN {node} AS n ON (s.nid = n.nid) WHERE sid = :sid', array(':sid' => $params['submission']))->fetchAssoc();
+  $data = db_query('SELECT title, submitted, n.nid AS node_id FROM {webform_submissions} AS s LEFT JOIN {node} AS n ON (s.nid = n.nid) WHERE sid = :sid', array(':sid' => $params['submission']))->fetchAssoc();
   if (!empty($data)) {
     $params['nomenodo'] = $data['title'];
     $params['timestamp'] = $data['submitted'];
@@ -129,7 +138,7 @@ function _supporto_istanze_email($params) {
     // @TODO: add warning message
     return; 
   }
-  if (variable_get('supporto_istanze_notification_email', FALSE) || $params['realfield'] == 'visto') {
+  if (_supporto_istanze_check_email($data['node_id']) || $params['realfield'] == 'visto') {
     drupal_mail('supporto_istanze', 'segreteria', $segret, language_default(), $params);
   } 
 }
@@ -340,6 +349,33 @@ function supporto_istanze_admin_paths_alter(&$paths) {
     $paths['node/%node/submission/%/istanza_visto/%'] = TRUE;
 }
 
+/**
+ * check if $form_id is this module compliant
+ *
+ * @param string $form_id
+ * @return boolean (TRUE if compliant)
+ */
+function _supporto_istanze_check_formid($form_id) {
+  $apply_to = variable_get('supporto_istanze_node_types', array('article' => 'article'));
+
+  foreach ($apply_to as $key => $value) {
+    if ($key === $value && $key . '_node_form' === $form_id) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}  
+
+/**
+ * Implements hook_form_alter().  
+ */
+function supporto_istanze_form_alter(&$form, &$form_state, $form_id) {
+  if (_supporto_istanze_check_formid($form_id)) {
+    if (arg(0) == 'node' && arg(1) == 'add') {
+      $form['field_si_email'][LANGUAGE_NONE]['#default_value'] = variable_get('supporto_istanze_notification_email', FALSE);
+    }
+  }
+}
 
 function supporto_istanze_menu() {
   $items = array();
@@ -397,8 +433,8 @@ function _supporto_istanze_applies_to_bundle($nodetype, $apply_to = NULL) {
   return ($apply_to[$nodetype] === $nodetype);
 }
 
-function _supporto_istanze_acquisisci_reset_field($form = NULL) {
-  $fieldname = 'field_si_acquisisci';
+function _supporto_istanze_reset_field($fieldname, $label, $description, $form = NULL) {
+  //$fieldname = 'field_si_acquisisci';
   // Check if our field is not already created.
   if (!field_info_field($fieldname)) {
     $field = array(
@@ -429,24 +465,43 @@ function _supporto_istanze_acquisisci_reset_field($form = NULL) {
       }
       continue;
     }
-    if (!field_info_instance('node', $fieldname, $bundle)) {
+    $instance = field_info_instance('node', $fieldname, $bundle);
+    $default = FALSE; //$fieldname == 'field_si_email' ? variable_get('supporto_istanze_notification_email', FALSE) : FALSE;
+    if (!($instance)) {
       $instance = array(
         'field_name' => $fieldname, 
         'entity_type' => 'node', 
-        'label' => 'Acquisisci soltanto, senza visto del DS',
-        'description' => 'Questo campo serve per attivare la modalità acquisisci.',
+        'label' => $label, //'Acquisisci soltanto, senza visto del DS',
+        'description' => $description, //'Questo campo serve per attivare la modalità acquisisci.',
 //        'type' => 'list_boolean', 
         'bundle' => $bundle, 
-        'default_value' => 0,
+        'default_value' => $default,
         'widget'      => array(
           'type'     => 'options_onoff',
           'settings' => array(
             'display_label' => 1,
-            'default_value' => 0,
+            'default_value' => $default,
           ),
         ),
       );
       field_create_instance($instance);
+//    } else {
+//      $instance['default_value'] = $default;
+//      $instance['widget']['settings']['default_value'] = $default;
+//      field_update_instance($instance);
     }
   }
+}
+
+function _supporto_istanze_acquisisci_reset_field($form = NULL) {
+  _supporto_istanze_reset_field('field_si_acquisisci', 'Acquisisci soltanto, senza visto del DS', 'Questo campo serve per attivare la modalità acquisisci.', $form);
+}
+
+function _supporto_istanze_email_segr_reset_field($form = NULL) {
+  _supporto_istanze_reset_field('field_si_email', 'Email di istanza evasa alla segreteria', 'Questo campo serve per inviare anche alla segreteria una email d istanza evasa.', $form);
+}
+
+function _supporto_istanze_reset_fields($form = NULL) {
+  _supporto_istanze_acquisisci_reset_field($form);
+  _supporto_istanze_email_segr_reset_field($form);
 }

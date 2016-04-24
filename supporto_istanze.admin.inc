@@ -40,10 +40,10 @@ function supporto_istanze_admin_settings_form() {
   );
   $form['supporto_istanze_content2']['supporto_istanze_notification_email'] = array(
     '#type' => 'checkbox',
-    '#title' => 'Invia <strong>sempre</strong> email di istanza evasa alla segreteria',
+    '#title' => 'Invia, in modo predefinito, email di istanza evasa alla segreteria',
     '#defaul_value' => variable_get('supporto_istanze_notification_email', FALSE),
     '#attributes' => variable_get('supporto_istanze_notification_email', FALSE) ? array('checked' => 'checked') : NULL,
   );
-  $form['#submit'][] = '_supporto_istanze_acquisisci_reset_field';
+  $form['#submit'][] = '_supporto_istanze_reset_fields';
   return system_settings_form($form);
 }

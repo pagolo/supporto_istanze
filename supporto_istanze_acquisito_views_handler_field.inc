@@ -1,7 +1,8 @@
 <?php
 class supporto_istanze_acquisito_views_handler_field extends views_handler_field {
   function render($values) {
-    $editabile = ($this->view->name != 'le_mie_istanze' && !($this->view->name == 'istanze_personale' && $this->view->current_display == 'page_1'));
+//    $editabile = ($this->view->name != 'le_mie_istanze' && !($this->view->name == 'istanze_personale' && $this->view->current_display == 'page_1'));
+    $editabile = property_exists($this->view, 'si_editable') ? $this->view->si_editable : FALSE;
     $value = $this->get_value($values);
     $sid = $values->webform_submissions_node_sid;
     $nid = $values->webform_submissions_node_nid;
