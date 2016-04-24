@@ -91,6 +91,13 @@ function supporto_istanze_views_data() {
       'click sortable' => FALSE,
     ),
   );
+  $data['si']['modifica'] = array(
+    'title' => 'Modifica istanze',
+    'help' => 'Inserire questo campo per permettere la modifica delle istanze.',
+    'field' => array(
+      'handler' => 'supporto_istanze_modifica_views_handler_field',
+    ),
+  );
 
   return $data;
 }
@@ -104,6 +111,9 @@ function supporto_istanze_views_handlers() {
     'path' => drupal_get_path('module', 'supporto_istanze'),
     ),
   'handlers' => array(
+    'supporto_istanze_modifica_views_handler_field' => array(
+      'parent' => 'views_handler_field',
+     ),
     'supporto_istanze_protocollo_views_handler_field' => array(
       'parent' => 'views_handler_field',
      ),

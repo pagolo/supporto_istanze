@@ -2,13 +2,14 @@ name = "Supporto per Istanze on line"
 description = "modulo di supporto per la funzionalità di Istanze on line progettata da Nadia Caprotti"
 core = 7.x
 package = Other
-version = "7.x-1.1"
+version = "7.x-1.2"
 
 dependencies[] = ctools
 dependencies[] = views
 configure = admin/config/system/supporto_istanze
 
 ; Views Handlers
+files[] = supporto_istanze_modifica_views_handler_field.inc
 files[] = supporto_istanze_motivazioni_views_handler_field.inc
 files[] = supporto_istanze_protocollo_views_handler_field.inc
 files[] = supporto_istanze_concedibile_views_handler_field.inc
