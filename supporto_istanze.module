@@ -101,11 +101,30 @@ function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, 
     '#name' => 'field',
     '#value' => $field,
   );
+  $dest = current_path();
+  if (!isset($_SESSION['si_dest'])) {
+    if ($dest == '/system/ajax') {
+      $dest = '/';
+    }
+    $_SESSION['si_dest'] = $dest;
+  } else {
+    $dest = $_SESSION['si_dest'];
+  }
+  $form['destination'] = array(
+    '#type' => 'value',
+    '#name' => 'destination',
+    '#value' => $dest,
+  );
   $form['is_ok'] = array(
     '#type' => 'checkbox',
     '#default_value' => $checked,
+    '#ajax' => array(
+      'callback' => 'supporto_istanze_form_callback',
+      'wrapper' => 'sid' . $sid,
+      'progress' => array('type' => 'none'),
+    ),
     '#attributes' => array(
-      'onclick' => 'this.form.submit()',
+//      'onclick' => 'this.form.submit()',
       'title' => 'Selezionare per cambiare lo stato',
     ),
   );
@@ -119,9 +138,56 @@ function supporto_istanze_form($form, &$form_state, $sid, $uid, $tid, $checked, 
   return $form;
 }
 
+function _supporto_istanze_get_nid_tid($sid, &$nid, &$tid) {
+  $query = db_select('supporto_istanze', 't');
+  $query->condition('submission_id', $sid,'=');
+  $query->join('webform_submissions', 's', 't.submission_id = s.sid');
+  $query->fields('t', array('tid'));
+  $query->fields('s', array('nid'));
+  $result = $query->execute();
+  $array = $result->fetchAssoc();
+  $nid = isset($array['nid']) ? $array['nid'] : 0;
+  $tid = isset($array['tid']) ? $array['tid'] : 0;
+}
+
+function supporto_istanze_form_callback($form, $form_state) {
+  $input = $form_state['values'];
+  if ($input['is_ok'] == 'on') {
+    _supporto_istanze_delete_instances($input);
+  } else {
+    _supporto_istanze_save_selection($input, FALSE);
+  }
+  $sid = $input['submission'];
+  $nid = $tid = 0;
+  _supporto_istanze_get_nid_tid($sid, $nid, $tid);
+  $acquisisci = FALSE;
+  $nodo = node_load($nid);
+  if (isset($nodo->field_si_acquisisci['und'][0]['value']) && $nodo->field_si_acquisisci['und'][0]['value'] == 1) {
+    $acquisisci = TRUE;
+  }
+  if (user_access('acquisito') && $input['is_ok'] != 'on') {
+    $status = 'da valutare';
+    switch ($value) {
+      case 1:
+        $status = $acquisisci? 'acquisito' : 'concedibile';
+        break;
+      case 2:
+        $status = $acquisisci? 'non acquisito' : 'non concedibile';
+        break;            
+    }
+    $a = $input['destination'];
+    $html = sprintf('<span id="sid%d"><a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_%s/%d?destination=%s\'>%s</a></span>', $sid, $nid, $sid, $acquisisci? 'acquisisci' : 'concedi', $tid, $a, $status);
+  }
+  else {
+    $html = sprintf('<span id="sid%d">---</span>', $sid);
+  }
+  return $html;
+}
+
 function _supporto_istanze_check_email($nid) {
   $node = node_load($nid);
   if (!$node || !property_exists($node, 'field_si_email')) return false;
+  if (!isset($node->field_si_email['und'])) return false;
   return $node->field_si_email['und'][0]['value']; 
 }
 
@@ -181,6 +247,7 @@ function supporto_istanze_mail($key, &$message, $params) {
   
 function supporto_istanze_reasons_form_submit($form, &$form_state) {
   $evaso = FALSE;
+  //dsm('form_state='.$form_state['#action'].'<br>'.'form='.$form['#action']);
   $input = $form_state['values'];
   if (!($input['realfield'] == 'concedibile' && $input['is_ok'] == 1)) {
     $evaso = TRUE;
@@ -307,7 +374,13 @@ function _supporto_istanze_textarea_validate($element, &$form_state, $form) {
   }
 }
 
-function _supporto_istanze_save_selection($input) {
+function _supporto_istanze_delete_instances($input) {
+  db_delete('supporto_istanze')
+    ->condition('submission_id', $input['submission'])
+    ->execute();  
+}
+
+function _supporto_istanze_save_selection($input, $message = TRUE) {
   if ($input['tid'] == 0) {
     $id = db_insert('supporto_istanze')
     ->fields(array(
@@ -328,7 +401,9 @@ function _supporto_istanze_save_selection($input) {
     ->condition('tid', $input['tid'])
     ->execute();
   }
-  drupal_set_message('Salvato campo <em>'. $input['field'] . '</em> istanza <em>' . $input['submission'] . '</em>');
+  if ($message) {
+    drupal_set_message('Salvato campo <em>'. $input['field'] . '</em> istanza <em>' . $input['submission'] . '</em>');
+  }
 }
 
 function supporto_istanze_admin_paths() {

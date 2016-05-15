@@ -11,11 +11,7 @@ class supporto_istanze_protocollo_views_handler_field extends views_handler_fiel
     $nodata = is_null($values->webform_submissions_node_si_tid);
     if (user_access('protocollato') && 
       $editabile &&
-      ($nodata || 
-        ((property_exists($values, 'webform_submissions_node_si_acquisito_stato') && 
-          is_null($values->webform_submissions_node_si_acquisito_stato)) || 
-        (property_exists($values, 'webform_submissions_node_si_concedibile_stato') && 
-          is_null($values->webform_submissions_node_si_concedibile_stato))))) {
+      $nodata ) {
       $ass_array = array();
       $ass_array['my_checkbox'] = drupal_get_form('supporto_istanze_form_'.$i, $sid, $uid, $nodata? 0 : $tid, $nodata? 0 : $value, 'protocollo');
       $html = theme('supporto_istanze_views', array ('content' => '', 'assoc' => $ass_array));
