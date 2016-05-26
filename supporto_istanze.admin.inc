@@ -44,6 +44,25 @@ function supporto_istanze_admin_settings_form() {
     '#defaul_value' => variable_get('supporto_istanze_notification_email', FALSE),
     '#attributes' => variable_get('supporto_istanze_notification_email', FALSE) ? array('checked' => 'checked') : NULL,
   );
+  $form['supporto_istanze_content3'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Testo delle email di notifica',
+  );
+  $form['supporto_istanze_content3']['supporto_istanze_notification_body'] = array(
+    '#type' => 'textarea',
+    '#title' => "Notifica all'utente. E' possibile modificare il testo del messaggio utilizzando i riferimenti preceduti da @ come da esempio.",
+    '#default_value' => variable_get('supporto_istanze_notification_body', "La sua istanza @istanza, n. @istanza_id del @data, è stata @esito."),
+  );
+  $form['supporto_istanze_content3']['supporto_istanze_segreteria_body'] = array(
+    '#type' => 'textarea',
+    '#title' => "Email alla segreteria. E' possibile modificare il testo del messaggio utilizzando i riferimenti come sopra.",
+    '#default_value' => variable_get('supporto_istanze_segreteria_body', "L'istanza @istanza, n. @istanza_id del @data presentata da @nome, è stata @esito."),
+  );
+  $form['supporto_istanze_content3']['supporto_istanze_notification_footer'] = array(
+    '#type' => 'textarea',
+    '#title' => "Saluti e firma. E' possibile modificare il testo del messaggio utilizzando i riferimenti come sopra.",
+    '#default_value' => variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\nil Dirigente."),
+  );
   $form['#submit'][] = '_supporto_istanze_reset_fields';
   return system_settings_form($form);
 }
