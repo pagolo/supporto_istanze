@@ -178,10 +178,10 @@ function supporto_istanze_form_callback($form, $form_state) {
   else {
     $html = sprintf('<span id="sid%d">---</span>', $sid);
   }
-  drupal_set_message($mode . ' campo protocollo istanza ' . $sid);
+//  drupal_set_message($mode . ' campo protocollo istanza ' . $sid);
   $commands = array();
-  $commands[] = ajax_command_remove('div.messages');
-  $commands[] = ajax_command_before('#main-content', theme('status_messages'));
+//  $commands[] = ajax_command_remove('div.messages');
+//  $commands[] = ajax_command_before('#main-content', theme('status_messages'));
   $commands[] = ajax_command_replace('#sid'.$sid, $html);
   return array('#type' => 'ajax', '#commands' => $commands);// $html;
 }
@@ -203,7 +203,7 @@ function _supporto_istanze_email($params) {
   drupal_mail('supporto_istanze', 'notifica', $params['user']->mail, language_default(), $params);
   $segret = variable_get('supporto_istanze_email', '');
   if  (empty($segret)) {
-    // @TODO: add warning message
+    drupal_set_message('impossibile inviare email alla segreteria, specificare indirizzo in configurazione.');
     return; 
   }
   if (_supporto_istanze_check_email($data['node_id']) || $params['realfield'] == 'visto') {
@@ -212,6 +212,11 @@ function _supporto_istanze_email($params) {
 }
 
 function supporto_istanze_mail($key, &$message, $params) {
+  global $user;
+  $logged = user_load($user->uid);
+  if (!($logged)) {
+    $logged = $user;
+  }
   $options = array(
     'langcode' => $message['language']->language,
   );
@@ -223,6 +228,8 @@ function supporto_istanze_mail($key, &$message, $params) {
     '@data' => format_date($params['timestamp'], 'custom', 'd/m/Y'),
     '@esito' => $params['is_ok'] == 1? 'accolta' : 'respinta',
     '@motivazioni' => $params['reasons'],
+    '@operatore' => (empty($logged->field_cognome) || empty($logged->field_nome))? $logged->name : $logged->field_nome['und'][0]['value'] . ' ' .$logged->field_cognome['und'][0]['value'],
+    '@qualifica_operatore' => (empty($logged->field_qualifica))? '' : $logged->field_qualifica['und'][0]['value'],
 //    '@nome_dirigente' => variable_get('supporto_istanze_nome_dirigente', ''),
   );
   
@@ -234,7 +241,7 @@ function supporto_istanze_mail($key, &$message, $params) {
       if ($params['is_ok'] == 2) {
         $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
       }
-      $message['body'][] = @t(variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\nil Dirigente."), $variables, $options);
+      $message['body'][] = @t(variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\n@operatore (@qualifica_operatore)."), $variables, $options);
       break;
     case 'segreteria':
       $message['subject'] = @t('Notifica di istanza evasa (@nomesito)', $variables, $options);
@@ -243,7 +250,7 @@ function supporto_istanze_mail($key, &$message, $params) {
       if ($params['is_ok'] == 2) {
         $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
       }
-      $message['body'][] = @t(variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\nil Dirigente."), $variables, $options);
+      $message['body'][] = @t(variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\n@operatore (@qualifica_operatore)."), $variables, $options);
       break;
   }
 }
@@ -266,22 +273,28 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
       'motivazioni' => $input['reasons'],
     );
   }
-  db_update('supporto_istanze')
+  $rows = db_update('supporto_istanze')
   ->fields($myfields)
   ->condition('tid', $input['tid'])
   ->execute();
-  drupal_set_message('Salvato campo istanza <em>' . $input['submission'] . '</em>.');
-  if ($evaso) {
-    _supporto_istanze_email($input);
+  if ($rows > 0 ) {
+    drupal_set_message('Salvato campo istanza <em>' . $input['submission'] . '</em>.');
+    if ($evaso) {
+      _supporto_istanze_email($input);
+    }
+  } else {
+    drupal_set_message('Impossibile salvare campo istanza <em>' . $input['submission'] . '</em>.', 'warning');
   }
 }
 
 function supporto_istanze_reasons_form($form, &$form_state, $campo) {
   $tid = arg(5);
   $sid = arg(3);
+  $datafound = TRUE;
   $result = db_query('SELECT * FROM {supporto_istanze} WHERE tid = :tid', array(':tid' => $tid));
   if ($result->rowCount() == 0) {
     drupal_set_message('Dati non trovati', 'warning');
+    $datafound = FALSE;
   }
   $data = $result->fetchAssoc();
   $uid = $data['user_id'];
@@ -368,6 +381,9 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
     '#type' => 'submit',
     '#value' => 'Salva',
   );
+  if (!$datafound) {
+    $form['submit']['#attributes'] = array('disabled' => 'disabled');
+  }
   return $form;
 }
 

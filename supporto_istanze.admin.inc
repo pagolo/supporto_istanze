@@ -61,7 +61,7 @@ function supporto_istanze_admin_settings_form() {
   $form['supporto_istanze_content3']['supporto_istanze_notification_footer'] = array(
     '#type' => 'textarea',
     '#title' => "Saluti e firma. E' possibile modificare il testo del messaggio utilizzando i riferimenti come sopra.",
-    '#default_value' => variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\nil Dirigente."),
+    '#default_value' => variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\n@operatore (@qualifica_operatore)."),
   );
   $form['#submit'][] = '_supporto_istanze_reset_fields';
   return system_settings_form($form);
