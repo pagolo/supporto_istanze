@@ -8,13 +8,18 @@ class supporto_istanze_visto_views_handler_field extends views_handler_field {
     $nid = $values->webform_submissions_node_nid;
     $tid = $values->webform_submissions_node_si_tid;
     $conc = $values->webform_submissions_node_si_concedibile_stato;
+    $visto_dsga = $values->webform_submissions_node_si_visto_dsga_stato;
+    $usa_visto_dsga = FALSE;
     $acquisisci = FALSE;
     $nodo = node_load($nid);
+    if (isset($nodo->field_si_dsga['und'][0]['value']) && $nodo->field_si_dsga['und'][0]['value'] == 1) {
+      $usa_visto_dsga = TRUE;
+    }
     if (isset($nodo->field_si_acquisisci['und'][0]['value']) && $nodo->field_si_acquisisci['und'][0]['value'] == 1) {
       $acquisisci = TRUE;
     }
     $nodata = is_null($tid);
-    if (user_access('visto') && $editabile && !$nodata && $conc == 1 && $acquisisci == FALSE) {
+    if (user_access('visto') && $editabile && !$nodata && $conc == 1 && (!$usa_visto_dsga || $visto_dsga == 1) && $acquisisci == FALSE) {
       $status = 'da valutare';
       switch ($value) {
         case 1:
