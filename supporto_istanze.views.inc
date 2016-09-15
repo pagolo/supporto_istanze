@@ -73,6 +73,15 @@ function supporto_istanze_views_data() {
       'click sortable' => FALSE,
     ),
   );
+  $data['si']['visto_referente_stato'] = array(
+    'title' => 'Visto del Referente',
+    'help' => 'Istanza conforme.',
+    'table' => 'supporto_istanze',
+    'field' => array(
+      'handler' => 'supporto_istanze_visto_referente_views_handler_field',
+      'click sortable' => FALSE,
+    ),
+  );
   $data['si']['visto_stato'] = array(
     'title' => 'Visto del DS',
     'help' => 'Istanza accolta.',
@@ -135,6 +144,9 @@ function supporto_istanze_views_handlers() {
       'parent' => 'views_handler_field',
      ),        
     'supporto_istanze_visto_dsga_views_handler_field' => array(
+      'parent' => 'views_handler_field',
+     ),        
+    'supporto_istanze_visto_referente_views_handler_field' => array(
       'parent' => 'views_handler_field',
      ),        
     'supporto_istanze_visto_views_handler_field' => array(

@@ -33,6 +33,10 @@ function supporto_istanze_permission() {
       'title' => 'Visto del DSGA',
       'description' => 'Visto del DSGA per la concessione di una istanza',
     ),
+    'visto referente' => array(
+      'title' => 'Visto Referente',
+      'description' => 'Visto del Referente per la concessione di una istanza',
+    ),
     'visto' => array(
       'title' => 'Visto del DS',
       'description' => 'Visto del DS per la concessione di una istanza',
@@ -65,6 +69,12 @@ function supporto_istanze_theme($existing, $type, $theme, $path) {
 function supporto_istanze_node_view($node) {
   if (isset($node->content['field_si_acquisisci'])) {
     $node->content['field_si_acquisisci'] = NULL;
+  }
+  if (isset($node->content['field_si_dsga'])) {
+    $node->content['field_si_dsga'] = NULL;
+  }
+  if (isset($node->content['field_si_referente'])) {
+    $node->content['field_si_referente'] = NULL;
   }
   if (isset($node->content['field_si_email'])) {
     $node->content['field_si_email'] = NULL;
@@ -259,17 +269,57 @@ function supporto_istanze_mail($key, &$message, $params) {
 function supporto_istanze_reasons_form_submit($form, &$form_state) {
   $evaso = FALSE;
   $input = $form_state['values'];
-  $usa_visto_dsga = $acquisisci = FALSE;
+  $usa_visto_dsga = $usa_visto_referente = $acquisisci = FALSE;
   $nodo = node_load($input['nid']);
   if (isset($nodo->field_si_dsga['und'][0]['value']) && $nodo->field_si_dsga['und'][0]['value'] == 1) {
     $usa_visto_dsga = TRUE;
   }
+  if (isset($nodo->field_si_referente['und'][0]['value']) && $nodo->field_si_referente['und'][0]['value'] == 1) {
+    $usa_visto_referente = TRUE;
+  }
   if (isset($nodo->field_si_acquisisci['und'][0]['value']) && $nodo->field_si_acquisisci['und'][0]['value'] == 1) {
     $acquisisci = TRUE;
   }
+  
+  //new routine
+  switch($input['realfield']) {
+    case 'protocollo':
+      break;
+    case 'concedibile':
+      if ($input['is_ok'] == 0 || (!$usa_visto_dsga && !$usa_visto_referente && $acquisisci))
+        $evaso = TRUE;
+      break;
+    case 'visto_dsga':
+      if ($input['is_ok'] == 0 || (!$usa_visto_referente && $acquisisci))
+        $evaso = TRUE;
+      break;
+    case 'visto_referente':
+      if ($input['is_ok'] == 0 || $acquisisci)
+        $evaso = TRUE;
+      break;
+    case 'visto':
+      $evaso = TRUE;
+      break;
+  }
+  if ($evaso) {
+    $myfields = array(
+      $input['field'] . '_stato' => $input['is_ok'],
+      'evaso_data' => time(),
+      'motivazioni' => $input['reasons'],
+    );
+  } else {
+    $myfields = array(
+      $input['field'] . '_stato' => $input['is_ok'],
+      'evaso_data' => NULL,
+      'motivazioni' => $input['reasons'],
+    );
+  }
+
+  // old routine
+  /*
   if (!($input['realfield'] == 'concedibile' && $input['is_ok'] == 1)
         &&
-        !($input['realfield'] != 'visto' &&  $input['realfield'] != 'visto_dsga' && $usa_visto_dsga && $input['is_ok'] == 1)
+        !($input['realfield'] != 'visto' && (($input['realfield'] != 'visto_dsga' && $usa_visto_dsga) || ($input['realfield'] != 'visto_referente' && $usa_visto_referente)) && $input['is_ok'] == 1)
         &&
         !($acquisisci == FALSE && $input['realfield'] != 'visto' && $input['is_ok'] == 1)
         ) {
@@ -286,6 +336,7 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
       'motivazioni' => $input['reasons'],
     );
   }
+  */
   $rows = db_update('supporto_istanze')
   ->fields($myfields)
   ->condition('tid', $input['tid'])
@@ -351,7 +402,7 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
       '#type' => 'radios',
       '#title' => 'acquisisci o respingi:',
       '#options' => array(
-        1 => 'Acquisisci istanza',
+        1 => 'Acquisisci istanza (salvo eventuale visto negativo)',
         2 => 'Respingi istanza',
       ),
       '#default_value' => $checked? $checked : 1,
@@ -375,6 +426,20 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
     );
     break;
     case 'visto_dsga':
+    $form['is_ok'] = array(
+      '#type' => 'radios',
+      '#title' => 'Accetta o respingi:',
+      '#options' => array(
+        1 => 'Istanza accettata',
+        2 => 'Istanza respinta',
+      ),
+      '#default_value' => $checked? $checked : 1,
+      '#attributes' => array(
+        'title' => 'Selezionare per cambiare lo stato',
+      ),
+    );
+    break;
+    case 'visto_referente':
     $form['is_ok'] = array(
       '#type' => 'radios',
       '#title' => 'Accetta o respingi:',
@@ -464,6 +529,7 @@ function supporto_istanze_admin_paths() {
     'node/*/submission/*/istanza_concedi/*' => TRUE,
     'node/*/submission/*/istanza_visto/*' => TRUE,
     'node/*/submission/*/istanza_visto_dsga/*' => TRUE,
+    'node/*/submission/*/istanza_visto_referente/*' => TRUE,
   );
   return $paths;
 } 
@@ -476,6 +542,7 @@ function supporto_istanze_admin_paths_alter(&$paths) {
     $paths['node/%node/submission/%/istanza_concedi/%'] = TRUE;
     $paths['node/%node/submission/%/istanza_visto/%'] = TRUE;
     $paths['node/%node/submission/%/istanza_visto_dsga/%'] = TRUE;
+    $paths['node/%node/submission/%/istanza_visto_referente/%'] = TRUE;
 }
 
 /**
@@ -550,6 +617,15 @@ function supporto_istanze_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('supporto_istanze_reasons_form','visto_dsga'),
     'access arguments' => array('visto dsga'),
+    'weight' => 2,
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['node/%node/submission/%/istanza_visto_referente/%'] = array(
+    'title' => 'Visto Referente',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('supporto_istanze_reasons_form','visto_referente'),
+    'access arguments' => array('visto referente'),
     'weight' => 2,
     'type' => MENU_NORMAL_ITEM,
   );
@@ -639,6 +715,10 @@ function _supporto_istanze_visto_dsga_reset_field($form = NULL) {
   _supporto_istanze_reset_field('field_si_dsga', 'Questa istanza richiede il visto del DSGA', 'Questo campo serve per attivare il visto del DSGA.', $form);
 }
 
+function _supporto_istanze_visto_referente_reset_field($form = NULL) {
+  _supporto_istanze_reset_field('field_si_referente', 'Questa istanza richiede il visto del Referente', 'Questo campo serve per attivare il visto del referente di plesso.', $form);
+}
+
 function _supporto_istanze_email_segr_reset_field($form = NULL) {
   _supporto_istanze_reset_field('field_si_email', 'Email di istanza evasa alla segreteria', 'Questo campo serve per inviare anche alla segreteria una email d istanza evasa.', $form);
 }
@@ -646,5 +726,6 @@ function _supporto_istanze_email_segr_reset_field($form = NULL) {
 function _supporto_istanze_reset_fields($form = NULL) {
   _supporto_istanze_acquisisci_reset_field($form);
   _supporto_istanze_visto_dsga_reset_field($form);
+  _supporto_istanze_visto_referente_reset_field($form);
   _supporto_istanze_email_segr_reset_field($form);
 }

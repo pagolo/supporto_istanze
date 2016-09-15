@@ -1,13 +1,20 @@
 <?php
-class supporto_istanze_concedibile_views_handler_field extends views_handler_field {
+class supporto_istanze_visto_referente_views_handler_field extends views_handler_field {
+  function right_user($comp_uid) {
+    global $user;
+    $current_user = user_load($user->uid);
+    $comp_user = user_load($comp_uid);
+    return ($comp_user->field_scuola['und']['0']['value'] == $current_user->field_scuola['und']['0']['value']);
+  }
   function render($values) {
-//    $editabile = ($this->view->name != 'le_mie_istanze' && !($this->view->name == 'istanze_personale' && $this->view->current_display == 'page_1'));
+    global $user;
     $editabile = property_exists($this->view, 'si_editable') ? $this->view->si_editable : FALSE;
     $value = $this->get_value($values);
+    $uid = $values->users_webform_submissions_uid;
     $sid = $values->webform_submissions_node_sid;
     $nid = $values->webform_submissions_node_nid;
     $tid = $values->webform_submissions_node_si_tid;
-    $protoc = $values->webform_submissions_node_si_protocollo_stato;
+    $conc = $values->webform_submissions_node_si_concedibile_stato;
     $visto_dsga = $values->webform_submissions_node_si_visto_dsga_stato;
     $visto_referente = $values->webform_submissions_node_si_visto_referente_stato;
     $visto = $values->webform_submissions_node_si_visto_stato;
@@ -23,25 +30,28 @@ class supporto_istanze_concedibile_views_handler_field extends views_handler_fie
     if (isset($nodo->field_si_acquisisci['und'][0]['value']) && $nodo->field_si_acquisisci['und'][0]['value'] == 1) {
       $acquisisci = TRUE;
     }
+    if (!($usa_visto_referente)) {
+      return '---';
+    }
     $nodata = is_null($tid);
-    if (user_access('acquisito') && $editabile && !$nodata && $protoc == 1 && is_null($visto) && (!$usa_visto_dsga || is_null($visto_dsga)) && (!$usa_visto_referente || is_null($visto_referente))) {
+    if (user_access('visto referente') && ($user->uid == 1 || $this->right_user($uid)) && $editabile && !$nodata && $conc == 1 && (!$usa_visto_dsga || $visto_dsga > 0) && is_null($visto)) {
       $status = 'da valutare';
       switch ($value) {
         case 1:
-          $status = $acquisisci? 'acquisito' : 'concedibile';
+          $status = 'pu&ograve; procedere';
           break;
         case 2:
-          $status = $acquisisci? 'non acquisito' : 'non concedibile';
+          $status = 'non pu&ograve; procedere';
           break;            
       }
       $a = drupal_get_destination();
-      $html = sprintf('<span id="sid%d"><a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_%s/%d?destination=%s\'>%s</a></span>', $sid, $nid, $sid, $acquisisci? 'acquisisci' : 'concedi', $tid, $a['destination'], $status);
+      $html = sprintf('<a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_visto_referente/%d?destination=%s\'>%s</a>', $nid, $sid, $tid, $a['destination'], $status);
     }
     elseif ($nodata || $value == 0) {
-      $html = sprintf('<span id="sid%d">---</span>', $sid);
+      $html = '---';
     } else {
       $si_no = ($value == 1 ? 'si' : 'no');
-      $msg = ($value == 2? 'non ' : '') . ($acquisisci? 'acquisito' : 'concedibile');
+      $msg = ($value == 2? 'non ' : '') . 'pu&ograve; procedere';
       $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/' . $si_no . '.png" alt="' . $msg . '" title="' . $msg . '" />';
     }
     return $html;
