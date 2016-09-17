@@ -355,6 +355,14 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
   $tid = arg(5);
   $sid = arg(3);
   $nid = arg(1);
+    $usa_visto_dsga = $usa_visto_referente = FALSE;
+    $nodo = node_load($nid);
+    if (isset($nodo->field_si_dsga['und'][0]['value']) && $nodo->field_si_dsga['und'][0]['value'] == 1) {
+      $usa_visto_dsga = TRUE;
+    }
+    if (isset($nodo->field_si_referente['und'][0]['value']) && $nodo->field_si_referente['und'][0]['value'] == 1) {
+      $usa_visto_referente = TRUE;
+    }
   $datafound = TRUE;
   $result = db_query('SELECT * FROM {supporto_istanze} WHERE tid = :tid', array(':tid' => $tid));
   if ($result->rowCount() == 0) {
@@ -402,7 +410,7 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
       '#type' => 'radios',
       '#title' => 'acquisisci o respingi:',
       '#options' => array(
-        1 => 'Acquisisci istanza (salvo eventuale visto negativo)',
+        1 => ($usa_visto_dsga || $usa_visto_referente) ? 'Istanza acquisibile (salvo eventuale visto negativo)' : 'Acquisisci istanza',
         2 => 'Respingi istanza',
       ),
       '#default_value' => $checked? $checked : 1,
