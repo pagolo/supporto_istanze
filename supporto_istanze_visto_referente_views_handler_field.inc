@@ -34,7 +34,7 @@ class supporto_istanze_visto_referente_views_handler_field extends views_handler
       return '---';
     }
     $nodata = is_null($tid);
-    if (user_access('visto referente') && ($user->uid == 1 || $this->right_user($uid)) && $editabile && !$nodata && $conc == 1 && (!$usa_visto_dsga || $visto_dsga > 0) && is_null($visto)) {
+    if (user_access('visto referente') && ($user->uid == 1 || $this->right_user($uid)) && $editabile && !$nodata && $conc == 0 && is_null($visto)) {
       $status = 'da valutare';
       switch ($value) {
         case 1:
@@ -48,7 +48,10 @@ class supporto_istanze_visto_referente_views_handler_field extends views_handler
       $html = sprintf('<a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_visto_referente/%d?destination=%s\'>%s</a>', $nid, $sid, $tid, $a['destination'], $status);
     }
     elseif ($nodata || $value == 0) {
-      $html = '---';
+      if (!($usa_visto_referente && user_access('visto referente')))
+        $html = '---';
+      else
+        $html = sprintf('<span id="sid%d">---</span>', $sid);
     } else {
       $si_no = ($value == 1 ? 'si' : 'no');
       $msg = ($value == 2? 'non ' : '') . 'pu&ograve; procedere';

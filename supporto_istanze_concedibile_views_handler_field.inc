@@ -24,7 +24,8 @@ class supporto_istanze_concedibile_views_handler_field extends views_handler_fie
       $acquisisci = TRUE;
     }
     $nodata = is_null($tid);
-    if (user_access('acquisito') && $editabile && !$nodata && $protoc == 1 && is_null($visto) && (!$usa_visto_dsga || is_null($visto_dsga)) && (!$usa_visto_referente || is_null($visto_referente))) {
+    //drupal_set_message($visto_referente."!");
+    if (user_access('acquisito') && $editabile && !$nodata && ($usa_visto_referente == FALSE || $visto_referente == 1) && $protoc == 1 && is_null($visto) && (!$usa_visto_dsga || is_null($visto_dsga))) {
       $status = 'da valutare';
       switch ($value) {
         case 1:
@@ -38,7 +39,10 @@ class supporto_istanze_concedibile_views_handler_field extends views_handler_fie
       $html = sprintf('<span id="sid%d"><a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_%s/%d?destination=%s\'>%s</a></span>', $sid, $nid, $sid, $acquisisci? 'acquisisci' : 'concedi', $tid, $a['destination'], $status);
     }
     elseif ($nodata || $value == 0) {
-      $html = sprintf('<span id="sid%d">---</span>', $sid);
+      if ($usa_visto_referente)
+        $html = '---';
+      else
+        $html = sprintf('<span id="sid%d">---</span>', $sid);
     } else {
       $si_no = ($value == 1 ? 'si' : 'no');
       $msg = ($value == 2? 'non ' : '') . ($acquisisci? 'acquisito' : 'concedibile');

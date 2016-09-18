@@ -176,24 +176,29 @@ function supporto_istanze_form_callback($form, $form_state) {
   $sid = $input['submission'];
   $nid = $tid = 0;
   _supporto_istanze_get_nid_tid($sid, $nid, $tid);
+  $usa_visto_referente = FALSE;
   $acquisisci = FALSE;
   $nodo = node_load($nid);
   if (isset($nodo->field_si_acquisisci['und'][0]['value']) && $nodo->field_si_acquisisci['und'][0]['value'] == 1) {
     $acquisisci = TRUE;
   }
-  if (user_access('acquisito') && $input['is_ok'] != 'on') {
+  if (isset($nodo->field_si_referente['und'][0]['value']) && $nodo->field_si_referente['und'][0]['value'] == 1) {
+    $usa_visto_referente = TRUE;
+  }
+  if (user_access('acquisito') && $input['is_ok'] != 'on' && !$usa_visto_referente) {
     $status = 'da valutare';
     $a = $input['destination'];
     $html = sprintf('<span id="sid%d"><a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_%s/%d?destination=%s\'>%s</a></span>', $sid, $nid, $sid, $acquisisci? 'acquisisci' : 'concedi', $tid, $a, $status);
-  }
-  else {
+  } elseif (user_access('visto_referente') && $input['is_ok'] != 'on' && $usa_visto_referente) {
+    $status = 'da valutare';
+    $a = $input['destination'];
+    $html = sprintf('<span id="sid%d"><a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_visto_referente/%d?destination=%s\'>%s</a></span>', $sid, $nid, $sid, $tid, $a, $status);
+  } else {
     $html = sprintf('<span id="sid%d">---</span>', $sid);
   }
-//  drupal_set_message($mode . ' campo protocollo istanza ' . $sid);
   $commands = array();
-//  $commands[] = ajax_command_remove('div.messages');
-//  $commands[] = ajax_command_before('#main-content', theme('status_messages'));
-  $commands[] = ajax_command_replace('#sid'.$sid, $html);
+  if (!$usa_visto_referente || user_access('visto_referente'))
+    $commands[] = ajax_command_replace('#sid'.$sid, $html);
   return array('#type' => 'ajax', '#commands' => $commands);// $html;
 }
 
@@ -280,23 +285,21 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
   if (isset($nodo->field_si_acquisisci['und'][0]['value']) && $nodo->field_si_acquisisci['und'][0]['value'] == 1) {
     $acquisisci = TRUE;
   }
-  
+
   //new routine
   switch($input['realfield']) {
     case 'protocollo':
       break;
+    case 'visto_referente':
     case 'concedibile':
-      if ($input['is_ok'] == 0 || (!$usa_visto_dsga && !$usa_visto_referente && $acquisisci))
+      if ($input['is_ok'] == 2)
         $evaso = TRUE;
       break;
     case 'visto_dsga':
-      if ($input['is_ok'] == 0 || (!$usa_visto_referente && $acquisisci))
+      if ($input['is_ok'] == 2 || $acquisisci)
         $evaso = TRUE;
       break;
-    case 'visto_referente':
-      if ($input['is_ok'] == 0 || $acquisisci)
-        $evaso = TRUE;
-      break;
+    case 'acquisito':
     case 'visto':
       $evaso = TRUE;
       break;
@@ -410,7 +413,7 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
       '#type' => 'radios',
       '#title' => 'acquisisci o respingi:',
       '#options' => array(
-        1 => ($usa_visto_dsga || $usa_visto_referente) ? 'Istanza acquisibile (salvo eventuale visto negativo)' : 'Acquisisci istanza',
+        1 => 'Acquisisci istanza',
         2 => 'Respingi istanza',
       ),
       '#default_value' => $checked? $checked : 1,
@@ -438,8 +441,8 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
       '#type' => 'radios',
       '#title' => 'Accetta o respingi:',
       '#options' => array(
-        1 => 'Istanza accettata',
-        2 => 'Istanza respinta',
+        1 => 'Istanza valida',
+        2 => 'Istanza non valida',
       ),
       '#default_value' => $checked? $checked : 1,
       '#attributes' => array(
@@ -452,8 +455,8 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
       '#type' => 'radios',
       '#title' => 'Accetta o respingi:',
       '#options' => array(
-        1 => 'Istanza accettata',
-        2 => 'Istanza respinta',
+        1 => 'Istanza valida',
+        2 => 'Istanza non valida',
       ),
       '#default_value' => $checked? $checked : 1,
       '#attributes' => array(
@@ -577,6 +580,10 @@ function supporto_istanze_form_alter(&$form, &$form_state, $form_id) {
   if (_supporto_istanze_check_formid($form_id)) {
     if (arg(0) == 'node' && arg(1) == 'add') {
       $form['field_si_email'][LANGUAGE_NONE]['#default_value'] = variable_get('supporto_istanze_notification_email', FALSE);
+    }
+    if (arg(0) == 'node' && (arg(1) == 'add' || arg(2) == 'edit')) {
+      $form['field_si_acquisisci'][LANGUAGE_NONE]['#attributes']['onclick'] = 'other = document.getElementById("edit-field-si-dsga-und");other.checked=other.value=0;';
+      $form['field_si_dsga'][LANGUAGE_NONE]['#attributes']['onclick'] = 'other = document.getElementById("edit-field-si-acquisisci-und");other.checked=other.value=0;';
     }
   }
 }
