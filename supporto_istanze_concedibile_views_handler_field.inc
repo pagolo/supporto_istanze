@@ -8,8 +8,8 @@ class supporto_istanze_concedibile_views_handler_field extends views_handler_fie
     $nid = $values->webform_submissions_node_nid;
     $tid = $values->webform_submissions_node_si_tid;
     $protoc = $values->webform_submissions_node_si_protocollo_stato;
-    $visto_dsga = $values->webform_submissions_node_si_visto_dsga_stato;
-    $visto_referente = $values->webform_submissions_node_si_visto_referente_stato;
+    $visto_dsga = property_exists($values, 'webform_submissions_node_si_visto_dsga_stato') ? $values->webform_submissions_node_si_visto_dsga_stato : NULL;
+    $visto_referente = property_exists($values, 'webform_submissions_node_si_visto_referente_stato') ? $values->webform_submissions_node_si_visto_referente_stato : NULL;
     $visto = $values->webform_submissions_node_si_visto_stato;
     $usa_visto_dsga = $usa_visto_referente = FALSE;
     $acquisisci = FALSE;

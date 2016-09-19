@@ -5,6 +5,33 @@
  * Implements hook_enable().
  */
 
+/**
+ * From 1.5 to 2.0 fields management.
+ */
+function supporto_istanze_update_7200() {
+  module_load_include('module', 'supporto_istanze');
+  _supporto_istanze_reset_fields();
+  $table = 'supporto_istanze';
+  $fieldname = 'visto_referente_stato';
+  if (!db_field_exists($table, $fieldname)) {
+    $field = array(
+        'description' => 'referente visa status',
+        'type' => 'int',
+        'not null' => FALSE,
+    );
+    db_add_field($table, $fieldname, $field);
+  }
+  $fieldname = 'visto_dsga_stato';
+  if (!db_field_exists($table, $fieldname)) {
+    $field = array(
+        'description' => 'dsga visa status',
+        'type' => 'int',
+        'not null' => FALSE,
+    );
+    db_add_field($table, $fieldname, $field);
+  }
+}
+
 function supporto_istanze_enable() {
   _supporto_istanze_reset_fields();
 }
@@ -48,6 +75,11 @@ function supporto_istanze_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
+      'visto_referente_stato' => array(
+        'description' => 'referente visa status',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
       'concedibile_stato' => array(
         'description' => 'accept status',
         'type' => 'int',
@@ -62,11 +94,6 @@ function supporto_istanze_schema() {
 */
       'visto_dsga_stato' => array(
         'description' => 'dsga visa status',
-        'type' => 'int',
-        'not null' => FALSE,
-      ),
-      'visto_referente_stato' => array(
-        'description' => 'referente visa status',
         'type' => 'int',
         'not null' => FALSE,
       ),

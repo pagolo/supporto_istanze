@@ -182,7 +182,7 @@ function supporto_istanze_form_callback($form, $form_state) {
   if (isset($nodo->field_si_acquisisci['und'][0]['value']) && $nodo->field_si_acquisisci['und'][0]['value'] == 1) {
     $acquisisci = TRUE;
   }
-  if (isset($nodo->field_si_referente['und'][0]['value']) && $nodo->field_si_referente['und'][0]['value'] == 1) {
+  if (property_exists($nodo, 'field_si_referente') && isset($nodo->field_si_referente['und'][0]['value']) && $nodo->field_si_referente['und'][0]['value'] == 1) {
     $usa_visto_referente = TRUE;
   }
   if (user_access('acquisito') && $input['is_ok'] != 'on' && !$usa_visto_referente) {
@@ -276,10 +276,10 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
   $input = $form_state['values'];
   $usa_visto_dsga = $usa_visto_referente = $acquisisci = FALSE;
   $nodo = node_load($input['nid']);
-  if (isset($nodo->field_si_dsga['und'][0]['value']) && $nodo->field_si_dsga['und'][0]['value'] == 1) {
+  if (property_exists($nodo, 'field_si_dsga') && isset($nodo->field_si_dsga['und'][0]['value']) && $nodo->field_si_dsga['und'][0]['value'] == 1) {
     $usa_visto_dsga = TRUE;
   }
-  if (isset($nodo->field_si_referente['und'][0]['value']) && $nodo->field_si_referente['und'][0]['value'] == 1) {
+  if (property_exists($nodo, 'field_si_referente') && isset($nodo->field_si_referente['und'][0]['value']) && $nodo->field_si_referente['und'][0]['value'] == 1) {
     $usa_visto_referente = TRUE;
   }
   if (isset($nodo->field_si_acquisisci['und'][0]['value']) && $nodo->field_si_acquisisci['und'][0]['value'] == 1) {
@@ -360,10 +360,10 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
   $nid = arg(1);
     $usa_visto_dsga = $usa_visto_referente = FALSE;
     $nodo = node_load($nid);
-    if (isset($nodo->field_si_dsga['und'][0]['value']) && $nodo->field_si_dsga['und'][0]['value'] == 1) {
+    if (property_exists($nodo, 'field_si_dsga') && isset($nodo->field_si_dsga['und'][0]['value']) && $nodo->field_si_dsga['und'][0]['value'] == 1) {
       $usa_visto_dsga = TRUE;
     }
-    if (isset($nodo->field_si_referente['und'][0]['value']) && $nodo->field_si_referente['und'][0]['value'] == 1) {
+    if (property_exists($nodo, 'field_si_referente') && isset($nodo->field_si_referente['und'][0]['value']) && $nodo->field_si_referente['und'][0]['value'] == 1) {
       $usa_visto_referente = TRUE;
     }
   $datafound = TRUE;
@@ -582,8 +582,8 @@ function supporto_istanze_form_alter(&$form, &$form_state, $form_id) {
       $form['field_si_email'][LANGUAGE_NONE]['#default_value'] = variable_get('supporto_istanze_notification_email', FALSE);
     }
     if (arg(0) == 'node' && (arg(1) == 'add' || arg(2) == 'edit')) {
-      $form['field_si_acquisisci'][LANGUAGE_NONE]['#attributes']['onclick'] = 'other = document.getElementById("edit-field-si-dsga-und");other.checked=other.value=0;';
-      $form['field_si_dsga'][LANGUAGE_NONE]['#attributes']['onclick'] = 'other = document.getElementById("edit-field-si-acquisisci-und");other.checked=other.value=0;';
+      $form['field_si_acquisisci'][LANGUAGE_NONE]['#attributes']['onchange'] = 'other = document.getElementById("edit-field-si-dsga-und");other.checked=other.value=0;';
+      $form['field_si_dsga'][LANGUAGE_NONE]['#attributes']['onchange'] = 'other = document.getElementById("edit-field-si-acquisisci-und");other.checked=other.value=0;';
     }
   }
 }
