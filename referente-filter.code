@@ -1,0 +1,20 @@
+$mostra_evasi = TRUE; // impostare a FALSE se si vogliono nascondere le pratiche evase
+if (property_exists($row, 'evaso_data') && !is_null($row->evaso_data)) {
+  $ritorno = $mostra_evasi? FALSE : TRUE;
+} else {
+  $ritorno = $mostra_evasi? TRUE : FALSE;
+}
+if ($ritorno) return TRUE;
+global $user;
+if ($user->uid == 1) return FALSE;
+$db_user = user_load($row->uid);
+$cur_user = user_load($user->uid);
+foreach ($db_user->field_scuola['und'] as $item1) {
+  foreach ($cur_user->field_scuola['und'] as $item2) {
+    if ($item1['value'] == $item2['value']) {
+      return FALSE;
+    }
+  }
+}
+return TRUE; 
+
