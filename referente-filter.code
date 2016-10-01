@@ -6,7 +6,7 @@ if (property_exists($row, 'evaso_data') && !is_null($row->evaso_data)) {
 }
 if ($ritorno) return TRUE;
 global $user;
-if ($user->uid == 1) return FALSE;
+if (user_has_role(user_has_role(user_role_load_by_name('administrator')->rid))) return FALSE;
 $db_user = user_load($row->uid);
 $cur_user = user_load($user->uid);
 foreach ($db_user->field_scuola['und'] as $item1) {

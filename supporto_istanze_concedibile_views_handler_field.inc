@@ -39,10 +39,7 @@ class supporto_istanze_concedibile_views_handler_field extends views_handler_fie
       $html = sprintf('<span id="sid%d"><a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_%s/%d?destination=%s\'>%s</a></span>', $sid, $nid, $sid, $acquisisci? 'acquisisci' : 'concedi', $tid, $a['destination'], $status);
     }
     elseif ($nodata || $value == 0) {
-      if ($usa_visto_referente)
-        $html = '---';
-      else
-        $html = sprintf('<span id="sid%d">---</span>', $sid);
+      $html = sprintf('<span id="sid%d">---</span>', $sid);
     } else {
       $si_no = ($value == 1 ? 'si' : 'no');
       $msg = ($value == 2? 'non ' : '') . ($acquisisci? 'acquisito' : 'concedibile');
