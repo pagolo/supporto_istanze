@@ -321,10 +321,11 @@ function _supporto_istanze_check_email($nid) {
 
 function _supporto_istanze_email($params) {
   $params['user'] = user_load($params['uid']);
-  $data = db_query('SELECT title, submitted, n.nid AS node_id FROM {webform_submissions} AS s LEFT JOIN {node} AS n ON (s.nid = n.nid) WHERE sid = :sid', array(':sid' => $params['submission']))->fetchAssoc();
+  $data = db_query('SELECT title, submitted, serial, n.nid AS node_id FROM {webform_submissions} AS s LEFT JOIN {node} AS n ON (s.nid = n.nid) WHERE sid = :sid', array(':sid' => $params['submission']))->fetchAssoc();
   if (!empty($data)) {
     $params['nomenodo'] = $data['title'];
     $params['timestamp'] = $data['submitted'];
+    $params['submission_serial'] = $data['serial'];
   }
   drupal_mail('supporto_istanze', 'notifica', $params['user']->mail, language_default(), $params);
   $segret = variable_get('supporto_istanze_email', '');
@@ -351,6 +352,7 @@ function supporto_istanze_mail($key, &$message, $params) {
     '@nome' => (empty($params['user']->field_cognome) || empty($params['user']->field_nome))? $params['user']->name : $params['user']->field_nome['und'][0]['value'] . ' ' .$params['user']->field_cognome['und'][0]['value'],
     '@istanza' => $params['nomenodo'],
     '@istanza_id' => $params['submission'],
+    '@istanza_serial' => $params['submission_serial'],
     '@data' => format_date($params['timestamp'], 'custom', 'd/m/Y'),
     '@esito' => $params['is_ok'] == 1? 'accolta' : 'respinta',
     '@motivazioni' => $params['reasons'],
@@ -363,7 +365,7 @@ function supporto_istanze_mail($key, &$message, $params) {
     case 'notifica':
       $message['subject'] = @t('Notifica di istanza evasa (@nomesito)', $variables, $options);
       $message['body'][] = @t("Gentile @nome,", $variables, $options);
-      $message['body'][] = @t(variable_get('supporto_istanze_notification_body', "La sua istanza @istanza, n. @istanza_id del @data, è stata @esito."), $variables, $options);
+      $message['body'][] = @t(variable_get('supporto_istanze_notification_body', "La sua istanza @istanza, n. @istanza_serial del @data, è stata @esito."), $variables, $options);
       if ($params['is_ok'] == 2) {
         $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
       }
