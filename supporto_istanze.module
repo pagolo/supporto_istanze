@@ -157,35 +157,21 @@ function supporto_istanze_ref_form($form, &$form_state, $sid, $uid, $tid, $check
 }
 
 function supporto_istanze_ref_form_callback($form, $form_state) {
-  if (!(user_access('visto referente'))) {
+  $input = $form_state['values'];
+  $uid = $input['user'];
+  if (!(user_access('visto referente') && (user_has_role(user_role_load_by_name('administrator')->rid) || supporto_istanze_visto_referente_views_handler_field::right_user($uid)))) {
     return '---';
   }
-  $input = $form_state['values'];
   if ($input['is_ok_ref'] == 0) {
-    _supporto_istanze_delete_instances($input);
+    //_supporto_istanze_delete_instances($input);
     $mode = "Cancellato";
   } else {
-    _supporto_istanze_save_selection($input, FALSE);
+    //_supporto_istanze_save_selection($input, FALSE);
     $mode = "Salvato";
   }
+    _supporto_istanze_save_selection($input, FALSE);
   $sid = $input['submission'];
   $commands = array();
-  if ($input['is_ok_ref'] == 2) {
-    $replace = "<script type=\"text/javascript\">var node=document.getElementById('ref1$sid');while (node.nodeName.toLowerCase() !== 'tr' ) node = node.parentNode;node.style.display='none';</script>";
-    $commands[] = ajax_command_replace('#ref2'.$sid, $replace);
-    $input['uid'] = $input['user'];
-    _supporto_istanze_email($input);
-  }
-  if ($input['is_ok_ref'] == 1 && user_has_role(user_role_load_by_name('administrator')->rid)) {
-    $nid = $tid = $uid = 0;
-    _supporto_istanze_get_nid_tid($sid, $nid, $tid, $uid);
-    $replace = "<div id='pro$sid'>&nbsp;" . drupal_render(drupal_get_form('supporto_istanze_form_1', $sid, $uid, $tid, 0, 'protocollo'))."</div>";
-    $commands[] = ajax_command_replace('#pro'.$sid, $replace);
-  }
-  if ($input['is_ok_ref'] == 0) {
-    $commands[] = ajax_command_replace('#sid'.$sid, sprintf('<span id="sid%d">---</span>', $sid));
-    $commands[] = ajax_command_replace('#pro'.$sid, sprintf('<span id="pro%d">---</span>', $sid));
-  }
 //$commands[] = ajax_command_invoke(NULL, 'prova', array());
   return array('#type' => 'ajax', '#commands' => $commands);// $html;
 }
@@ -283,13 +269,13 @@ function supporto_istanze_form_callback($form, $form_state) {
       $usa_visto_referente = TRUE;
     }
   }
-  if ($input['is_ok'] == 'on' && !$usa_visto_referente) {
-    _supporto_istanze_delete_instances($input);
+  if ($input['is_ok'] == 'on') {
+    //_supporto_istanze_delete_instances($input);
     $mode = "Cancellato";
   } else {
-    _supporto_istanze_save_selection($input, FALSE);
     $mode = "Salvato";
   }
+  _supporto_istanze_save_selection($input, FALSE);
   if ($nid == 0) {
     _supporto_istanze_get_nid_tid($sid, $nid, $tid, $uid);
     $nodo = node_load($nid);
@@ -374,7 +360,7 @@ function supporto_istanze_mail($key, &$message, $params) {
     case 'segreteria':
       $message['subject'] = @t('Notifica di istanza evasa (@nomesito)', $variables, $options);
       $message['body'][] = @t("All'attenzione della segreteria,");
-      $message['body'][] = @t(variable_get('supporto_istanze_segreteria_body', "L'istanza @istanza, n. @istanza_id del @data presentata da @nome, è stata @esito."), $variables, $options);
+      $message['body'][] = @t(variable_get('supporto_istanze_segreteria_body', "L'istanza @istanza, n. @istanza_serial del @data presentata da @nome, è stata @esito."), $variables, $options);
       if ($params['is_ok'] == 2) {
         $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
       }
@@ -626,14 +612,18 @@ function _supporto_istanze_save_selection($input, $message = TRUE) {
     $input['is_ok'] = $input['is_ok_ref'];
     $is_ref = TRUE;
   }
+  // do test ajax-safe
+  $nid = $tid = $uid = 0;
+  _supporto_istanze_get_nid_tid($input['submission'], $nid, $tid, $uid);
+  $input['tid'] = $tid;
   if ($input['tid'] == 0) {
     $id = db_insert('supporto_istanze')
     ->fields(array(
       'user_id' => $input['user'],
       'submission_id' => $input['submission'],
       $input['field'] . '_stato' => $input['is_ok'],
-      'evaso_data' => ($input['field'] == 'protocollo' || ($input['field'] == 'visto_referente' && $input['is_ok'] < 2) ||  ($input['field'] == 'concedibile' && $input['is_ok'] < 2)) ? NULL : time(),
-      'motivazioni' => ($input['field'] == 'visto_referente' && $input['is_ok'] == 2) ? "Il referente ha negato il proprio visto" : NULL,
+      'evaso_data' => ($input['field'] == 'protocollo' || $input['field'] == 'visto_referente' ||  ($input['field'] == 'concedibile' && $input['is_ok'] < 2)) ? NULL : time(),
+//      'motivazioni' => ($input['field'] == 'visto_referente' && $input['is_ok'] == 2) ? "Il referente ha negato il proprio visto" : NULL,
       ))
     ->execute();
   } else {

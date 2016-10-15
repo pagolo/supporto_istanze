@@ -23,7 +23,7 @@ class supporto_istanze_visto_views_handler_field extends views_handler_field {
       $acquisisci = TRUE;
     }
     $nodata = is_null($tid);
-    if (user_access('visto') && $editabile && !$nodata && $conc == 1 && (!$usa_visto_dsga || $visto_dsga == 1) && (!$usa_visto_referente || $visto_referente == 1) && $acquisisci == FALSE) {
+    if (user_access('visto') && $editabile && !$nodata && $conc == 1 && (!$usa_visto_dsga || $visto_dsga == 1) && $acquisisci == FALSE) {
       $status = 'da valutare';
       switch ($value) {
         case 1:

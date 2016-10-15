@@ -25,7 +25,7 @@ class supporto_istanze_concedibile_views_handler_field extends views_handler_fie
     }
     $nodata = is_null($tid);
     //drupal_set_message($visto_referente."!");
-    if (user_access('acquisito') && $editabile && !$nodata && ($usa_visto_referente == FALSE || $visto_referente == 1) && $protoc == 1 && is_null($visto) && (!$usa_visto_dsga || is_null($visto_dsga))) {
+    if (user_access('acquisito') && $editabile && !$nodata && $protoc == 1 && is_null($visto) && (!$usa_visto_dsga || is_null($visto_dsga))) {
       $status = 'da valutare';
       switch ($value) {
         case 1:

@@ -19,8 +19,8 @@ class supporto_istanze_protocollo_views_handler_field extends views_handler_fiel
     }
     if (user_access('protocollato') &&
       $editabile &&
-      $conc == 0 &&
-      (($nodata && !$usa_visto_referente) || $visto_referente > 0)
+      $conc == 0 // &&
+      //(($nodata && !$usa_visto_referente) || $usa_visto_referente)
       ) {
       $ass_array = array();
       $ass_array['my_checkbox'] = drupal_get_form('supporto_istanze_form_'.$i, $sid, $uid, $nodata? 0 : $tid, $nodata? 0 : $value, 'protocollo');

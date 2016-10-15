@@ -42,7 +42,7 @@ class supporto_istanze_visto_referente_views_handler_field extends views_handler
       return '---';
     }
     $nodata = is_null($tid);
-    if (user_access('visto referente') && (user_has_role(user_role_load_by_name('administrator')->rid) || $this->right_user($uid)) && $editabile && $nodata) {
+    if (user_access('visto referente') && (user_has_role(user_role_load_by_name('administrator')->rid) || $this->right_user($uid)) && $editabile && $value == 0) {
       $ass_array = array();
       $ass_array['my_checkbox'] = drupal_get_form('supporto_istanze_ref_form_'.$i, $sid, $uid, $nodata? 0 : $tid, $nodata? 0 : $value, 'visto_referente');
       $html = theme('supporto_istanze_views', array ('content' => '', 'assoc' => $ass_array))."<span id='ref1$sid'><span><span id='ref2$sid'><span>";
