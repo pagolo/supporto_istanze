@@ -45,6 +45,10 @@ function supporto_istanze_permission() {
       'title' => 'Istanza concedibile o acquisita',
       'description' => 'Controllare se una istanza può procedere nel suo iter',
     ),
+    'annullato' => array(
+      'title' => 'Istanza annullata',
+      'description' => 'Annullare una istanza',
+    ),
   );
 }
 
@@ -387,8 +391,8 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
   //new routine
   switch($input['realfield']) {
     case 'protocollo':
-      break;
     case 'visto_referente':
+      break;
     case 'concedibile':
       if ($input['is_ok'] == 2)
         $evaso = TRUE;
@@ -398,6 +402,9 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
         $evaso = TRUE;
       break;
     case 'acquisito':
+      if ($input['is_ok'] == 2 || !$usa_visto_dsga)
+        $evaso = TRUE;
+      break;
     case 'visto':
       $evaso = TRUE;
       break;
@@ -511,7 +518,7 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
       '#type' => 'radios',
       '#title' => 'acquisisci o respingi:',
       '#options' => array(
-        1 => 'Acquisisci istanza',
+        1 => $usa_visto_dsga? 'Acquisisci istanza (salvo visto DSGA contrario)' : 'Acquisisci istanza',
         2 => 'Respingi istanza',
       ),
       '#default_value' => $checked? $checked : 1,
@@ -689,10 +696,12 @@ function supporto_istanze_form_alter(&$form, &$form_state, $form_id) {
     if (arg(0) == 'node' && arg(1) == 'add') {
       $form['field_si_email'][LANGUAGE_NONE]['#default_value'] = variable_get('supporto_istanze_notification_email', FALSE);
     }
+/*
     if (arg(0) == 'node' && (arg(1) == 'add' || arg(2) == 'edit')) {
       $form['field_si_acquisisci'][LANGUAGE_NONE]['#attributes']['onchange'] = 'other = document.getElementById("edit-field-si-dsga-und");other.checked=other.value=0;';
       $form['field_si_dsga'][LANGUAGE_NONE]['#attributes']['onchange'] = 'other = document.getElementById("edit-field-si-acquisisci-und");other.checked=other.value=0;';
     }
+*/
   }
 }
 

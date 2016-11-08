@@ -1,7 +1,13 @@
 $mostra_evasi = TRUE; // impostare a FALSE se si vogliono nascondere le pratiche evase
+$solo_positivi = TRUE; // impostare a FALSE se si vogliono mostrare anche le pratiche evase negativamente
 if (property_exists($row, 'evaso_data') && !is_null($row->evaso_data)) {
   $ritorno = $mostra_evasi? FALSE : TRUE;
 } else {
   $ritorno = $mostra_evasi? TRUE : FALSE;
+}
+if ($mostra_evasi && $solo_positivi) {
+  if ($row->concedibile_stato == 2) return TRUE;
+  if ($row->visto_dsga_stato == 2) return TRUE;
+  if ($row->visto_stato == 2) return TRUE;
 }
 return $ritorno;

@@ -100,6 +100,15 @@ function supporto_istanze_views_data() {
       'click sortable' => FALSE,
     ),
   );
+  $data['si']['annullato_data'] = array(
+    'title' => 'Annullato',
+    'help' => 'Istanza annullata il...',
+    'table' => 'supporto_istanze',
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => FALSE,
+    ),
+  );
   $data['si']['motivazioni'] = array(
     'title' => 'Motivazioni',
     'help' => 'Le motivazioni per il rifiuto della istanza.',
@@ -151,7 +160,12 @@ function supporto_istanze_views_handlers() {
      ),        
     'supporto_istanze_visto_views_handler_field' => array(
       'parent' => 'views_handler_field',
-     ),        
+     ),
+/*
+    'supporto_istanze_annullato_data_views_handler_field' => array(
+      'parent' => 'views_handler_field',
+     ),
+*/        
     'supporto_istanze_motivazioni_views_handler_field' => array(
       'parent' => 'views_handler_field',
      ),        
