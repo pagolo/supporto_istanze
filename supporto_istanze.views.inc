@@ -105,7 +105,7 @@ function supporto_istanze_views_data() {
     'help' => 'Istanza annullata il...',
     'table' => 'supporto_istanze',
     'field' => array(
-      'handler' => 'views_handler_field_date',
+      'handler' => 'supporto_istanze_annullato_data_views_handler_field',
       'click sortable' => FALSE,
     ),
   );
@@ -161,11 +161,9 @@ function supporto_istanze_views_handlers() {
     'supporto_istanze_visto_views_handler_field' => array(
       'parent' => 'views_handler_field',
      ),
-/*
     'supporto_istanze_annullato_data_views_handler_field' => array(
-      'parent' => 'views_handler_field',
-     ),
-*/        
+      'parent' => 'views_handler_field_date',
+     ),        
     'supporto_istanze_motivazioni_views_handler_field' => array(
       'parent' => 'views_handler_field',
      ),        

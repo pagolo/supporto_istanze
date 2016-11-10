@@ -93,7 +93,91 @@ function supporto_istanze_forms($form_id, $args) {
   if (!empty($args) && !empty($form_id) && strpos($form_id, 'supporto_istanze_form_') === 0) {
     $forms[$form_id] = array ('callback' => 'supporto_istanze_form');
   }
+  if (!empty($args) && !empty($form_id) && strpos($form_id, 'supporto_istanze_cancel_form_') === 0) {
+    $forms[$form_id] = array ('callback' => 'supporto_istanze_cancel_form');
+  }
   return $forms;
+}
+
+function supporto_istanze_cancel_form_submit($form, $form_state) {
+  $input = $form_state['values'];
+  _supporto_istanze_cancel_instance($input);
+}
+
+function supporto_istanze_cancel_form($form, &$form_state, $sid, $uid, $tid, $checked, $field) {
+static $done = FALSE;
+if (!$done) {
+$form['delete_button_js'] = array(
+  '#markup' => '<script type="text/javascript">
+  var global_tid;
+  (function ($) {
+     // override the default confirmation dialog behavior
+     Drupal.behaviors.confirm = { 
+
+      // Get the jQuery events.
+      attach: function(context, settings) {
+      var events =  $(\'.deleteButtonClass\').clone(true).data(\'events\'); 
+
+      $(\'.deleteButtonClass\').unbind(\'mousedown\'); // Remove the mousedown event.
+
+      $(\'.deleteButtonClass\').mousedown(function () { 
+           // Popup the confirmation
+           if (confirm("Operazione irreversibile.\nVeramente annullare l\'istanza?")) {
+             // if YES, then we fire the AJAX event 
+             $(\'.deleteButtonClass\').trigger(\'cancelInstanceEvent_\'+global_tid); 
+           }
+           // Override the default action.
+           return false;
+        });
+    }
+            }
+  })(jQuery);
+  </script>
+  ',
+);
+$done = TRUE;
+}
+  $form['submission'] = array(
+    '#type' => 'value',
+    '#name' => 'submission',
+    '#value' => $sid,
+  );
+  $form['tid'] = array(
+    '#type' => 'value',
+    '#name' => 'tid',
+    '#value' => $tid,
+  );
+  $form['is_ok_cancel'] = array(
+    '#type' => 'submit',
+    '#default_value' => 'Annulla',
+    '#ajax' => array(
+      'callback' => 'supporto_istanze_cancel_form_callback',
+      'event' => 'cancelInstanceEvent_'.$tid,
+      'effect' => 'fade',
+      'progress' => array('type' => 'none'),
+    ),
+    '#attributes' => array(
+      'title' => 'Fare clic per annullare',
+      'class' => array('button-small', 'deleteButtonClass'),
+      'onmouseover' => 'global_tid='.$tid,
+      'style' => 'position:relative;top:-16px;',
+    ),
+  );
+
+  return $form;
+}
+
+function supporto_istanze_cancel_form_callback($form, $form_state) {
+  $input = $form_state['values'];
+  $sid = $input['submission'];
+  if (!(user_access('annullato'))) {
+    return '---';
+  }
+  _supporto_istanze_cancel_instance($input, FALSE);
+  $commands = array();
+  $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date(time(), 'essenziale') . ')';
+  $commands[] = ajax_command_replace('#can'.$sid, $html);
+  return array('#type' => 'ajax', '#commands' => $commands);// $html;
 }
 
 function supporto_istanze_ref_form_submit($form, $form_state) {
@@ -611,6 +695,21 @@ function _supporto_istanze_delete_instances($input) {
   db_delete('supporto_istanze')
     ->condition('submission_id', $input['submission'])
     ->execute();  
+}
+
+function _supporto_istanze_cancel_instance($input, $message = TRUE) {
+  if ($input['tid'] == 0) {
+    return;
+  }
+  db_update('supporto_istanze')
+  ->fields(array(
+    'annullato_data' => time(),
+    ))
+  ->condition('tid', $input['tid'])
+  ->execute();
+  if ($message) {
+    drupal_set_message('Annullata istanza id <em>' . $input['submission'] . '</em>');
+  }
 }
 
 function _supporto_istanze_save_selection($input, $message = TRUE) {
