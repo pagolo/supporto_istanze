@@ -122,7 +122,7 @@ $form['delete_button_js'] = array(
 
       $(\'.deleteButtonClass\').mousedown(function () { 
            // Popup the confirmation
-           if (confirm("Operazione irreversibile.\nVeramente annullare l\'istanza?")) {
+           if (confirm("Operazione irreversibile.\nPer annullare l\'istanza premere OK.")) {
              // if YES, then we fire the AJAX event 
              $(\'.deleteButtonClass\').trigger(\'cancelInstanceEvent_\'+global_tid); 
            }
@@ -148,7 +148,7 @@ $done = TRUE;
     '#value' => $tid,
   );
   $form['is_ok_cancel'] = array(
-    '#type' => 'submit',
+    '#type' => 'button',
     '#default_value' => 'Annulla',
     '#ajax' => array(
       'callback' => 'supporto_istanze_cancel_form_callback',
@@ -163,6 +163,7 @@ $done = TRUE;
       'style' => 'position:relative;top:-16px;',
     ),
   );
+  $form['#attributes'] = array('onsubmit' => 'return false');
 
   return $form;
 }
@@ -175,7 +176,7 @@ function supporto_istanze_cancel_form_callback($form, $form_state) {
   }
   _supporto_istanze_cancel_instance($input, FALSE);
   $commands = array();
-  $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date(time(), 'essenziale') . ')';
+  $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date(time(), 'essenziale') . ')<script type="text/javascript">var node=document.getElementById("can0'.$sid.'");if (node) {while (node.nodeName.toLowerCase() !== "tr" ) node = node.parentNode;node.style.display="none";}</script>';
   $commands[] = ajax_command_replace('#can'.$sid, $html);
   return array('#type' => 'ajax', '#commands' => $commands);// $html;
 }
@@ -378,11 +379,16 @@ function supporto_istanze_form_callback($form, $form_state) {
     $status = 'da valutare';
     $a = $input['destination'];
     $html = sprintf('<span id="sid%d"><a title=\'clic qui per valutare o modificare\' href=\'node/%d/submission/%d/istanza_%s/%d?destination=%s\'>%s</a></span>', $sid, $nid, $sid, $acquisisci? 'acquisisci' : 'concedi', $tid, $a, $status);
+      $ass_array = array();
+      $ass_array['my_button'] = drupal_get_form('supporto_istanze_cancel_form_0', $sid, $uid, $tid, 0, 'annullato');
+      $html2 = theme('supporto_istanze_views', array ('content' => '', 'assoc' => $ass_array));
+      $html2 = sprintf('<span id="can%d">%s</span>', $sid, $html2);
   } else {
     $html = sprintf('<span id="sid%d">---</span>', $sid);
   }
   $commands = array();
   $commands[] = ajax_command_replace('#sid'.$sid, $html);
+  $commands[] = ajax_command_replace('#can'.$sid, $html2);
   return array('#type' => 'ajax', '#commands' => $commands);// $html;
 }
 
@@ -390,7 +396,7 @@ function _supporto_istanze_check_email($nid) {
   $node = node_load($nid);
   if (!$node || !property_exists($node, 'field_si_email')) return false;
   if (!isset($node->field_si_email['und'])) return false;
-  return $node->field_si_email['und'][0]['value']; 
+  return ($node->field_si_email['und'][0]['value']); 
 }
 
 function _supporto_istanze_email($params) {
@@ -407,7 +413,7 @@ function _supporto_istanze_email($params) {
     drupal_set_message('impossibile inviare email alla segreteria, specificare indirizzo in configurazione.');
     return; 
   }
-  if (_supporto_istanze_check_email($data['node_id']) || $params['realfield'] == 'visto') {
+  if (_supporto_istanze_check_email($data['node_id'])) {
     drupal_mail('supporto_istanze', 'segreteria', $segret, language_default(), $params);
   } 
 }

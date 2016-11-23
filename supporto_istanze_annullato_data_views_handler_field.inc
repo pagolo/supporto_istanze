@@ -2,6 +2,7 @@
 class supporto_istanze_annullato_data_views_handler_field extends views_handler_field_date {
   function render($values) {
     static $i = 1;
+    $editabile = property_exists($this->view, 'si_editable') ? $this->view->si_editable : FALSE;
     $value = $this->get_value($values);
     $nid = $values->webform_submissions_node_nid;
     $sid = $values->webform_submissions_node_sid;
@@ -17,10 +18,10 @@ class supporto_istanze_annullato_data_views_handler_field extends views_handler_
       $ass_array = array();
       $ass_array['my_button'] = drupal_get_form('supporto_istanze_cancel_form_'.$i, $sid, $uid, $nodata? 0 : $tid, $nodata? 0 : $value, 'annullato');
       $html = theme('supporto_istanze_views', array ('content' => '', 'assoc' => $ass_array));
-      $html = sprintf('<span id="can%d">%s</span>', $sid, $html);
+      $html = sprintf('<span id="can0%d" /><span id="can%d">%s</span>', $editabile? $sid : 0, $sid, $html);
     }
     elseif ($nodata || is_null($value)) {
-      $html = '---';
+      $html = sprintf('<span id="can0%d" /><span id="can%d">---</span>', $editabile? $sid : 0, $sid);
     } else {
       $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date($value, 'essenziale') . ')';
     }
