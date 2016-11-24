@@ -111,8 +111,7 @@ function supporto_istanze_done_form_submit($form, $form_state) {
   _supporto_istanze_done_instance($input);
 }
 
-function supporto_istanze_done_form($form, &$form_state, $sid, $uid, $tid, $checked, $field) {
-/*
+function _supporto_istanze_script(&$form) {
 static $done = FALSE;
 if (!$done) {
 $form['delete_button_js'] = array(
@@ -124,15 +123,26 @@ $form['delete_button_js'] = array(
 
       // Get the jQuery events.
       attach: function(context, settings) {
-      var events =  $(\'.doneButtonClass\').clone(true).data(\'events\'); 
+      var events1 =  $(\'.doneButtonClass\').clone(true).data(\'events1\'); 
+      var events2 =  $(\'.deleteButtonClass\').clone(true).data(\'events2\'); 
 
       $(\'.doneButtonClass\').unbind(\'mousedown\'); // Remove the mousedown event.
+      $(\'.deleteButtonClass\').unbind(\'mousedown\'); // Remove the mousedown event.
 
       $(\'.doneButtonClass\').mousedown(function () { 
            // Popup the confirmation
            if (confirm("Operazione irreversibile.\nPer considerare elaborata l\'istanza premere OK.")) {
              // if YES, then we fire the AJAX event 
              $(\'.doneButtonClass\').trigger(\'doneInstanceEvent_\'+global_tid); 
+           }
+           // Override the default action.
+           return false;
+        });
+      $(\'.deleteButtonClass\').mousedown(function () { 
+           // Popup the confirmation
+           if (confirm("Operazione irreversibile.\nPer annullare l\'istanza premere OK.")) {
+             // if YES, then we fire the AJAX event 
+             $(\'.deleteButtonClass\').trigger(\'cancelInstanceEvent_\'+global_tid); 
            }
            // Override the default action.
            return false;
@@ -145,7 +155,10 @@ $form['delete_button_js'] = array(
 );
 $done = TRUE;
 }
-*/
+}
+
+function supporto_istanze_done_form($form, &$form_state, $sid, $uid, $tid, $checked, $field) {
+  _supporto_istanze_script($form);
   $form['submission'] = array(
     '#type' => 'value',
     '#name' => 'submission',
@@ -161,14 +174,14 @@ $done = TRUE;
     '#default_value' => 'Elabora',
     '#ajax' => array(
       'callback' => 'supporto_istanze_done_form_callback',
-//      'event' => 'doneInstanceEvent_'.$tid,
+      'event' => 'doneInstanceEvent_'.$tid,
       'effect' => 'fade',
       'progress' => array('type' => 'none'),
     ),
     '#attributes' => array(
       'title' => 'Fare clic per finalizzare',
       'class' => array('button-small', 'doneButtonClass'),
-//      'onmouseover' => 'global_tid='.$tid,
+      'onmouseover' => 'global_tid='.$tid,
       'style' => 'position:relative;top:-16px;',
     ),
   );
@@ -196,38 +209,7 @@ function supporto_istanze_cancel_form_submit($form, $form_state) {
 }
 
 function supporto_istanze_cancel_form($form, &$form_state, $sid, $uid, $tid, $checked, $field) {
-static $done = FALSE;
-if (!$done) {
-$form['delete_button_js'] = array(
-  '#markup' => '<script type="text/javascript">
-  var global_tid;
-  (function ($) {
-     // override the default confirmation dialog behavior
-     Drupal.behaviors.confirm = { 
-
-      // Get the jQuery events.
-      attach: function(context, settings) {
-      var events =  $(\'.deleteButtonClass\').clone(true).data(\'events\'); 
-
-      $(\'.deleteButtonClass\').unbind(\'mousedown\'); // Remove the mousedown event.
-
-      $(\'.deleteButtonClass\').mousedown(function () { 
-           // Popup the confirmation
-           if (confirm("Operazione irreversibile.\nPer annullare l\'istanza premere OK.")) {
-             // if YES, then we fire the AJAX event 
-             $(\'.deleteButtonClass\').trigger(\'cancelInstanceEvent_\'+global_tid); 
-           }
-           // Override the default action.
-           return false;
-        });
-    }
-            }
-  })(jQuery);
-  </script>
-  ',
-);
-$done = TRUE;
-}
+  _supporto_istanze_script($form);
   $form['submission'] = array(
     '#type' => 'value',
     '#name' => 'submission',
