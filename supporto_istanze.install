@@ -48,6 +48,22 @@ function supporto_istanze_update_7201() {
   }
 }
 
+/**
+ * From 2.1 to 2.2 fields management.
+ */
+function supporto_istanze_update_7202() {
+  $table = 'supporto_istanze';
+  $fieldname = 'elaborato_data';
+  if (!db_field_exists($table, $fieldname)) {
+    $field = array(
+        'description' => 'datestamp done with instance',
+        'type' => 'int',
+        'not null' => FALSE,
+    );
+    db_add_field($table, $fieldname, $field);
+  }
+}
+
 function supporto_istanze_enable() {
   _supporto_istanze_reset_fields();
 }
@@ -130,6 +146,11 @@ function supporto_istanze_schema() {
       ),
       'annullato_data' => array(
         'description' => 'datestamp canceled instance',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'elaborato_data' => array(
+        'description' => 'datestamp done with instance',
         'type' => 'int',
         'not null' => FALSE,
       ),
