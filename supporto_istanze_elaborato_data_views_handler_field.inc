@@ -26,7 +26,7 @@ class supporto_istanze_elaborato_data_views_handler_field extends views_handler_
 //      $html = sprintf('<span id="done0%d" /><span id="done%d">---</span>', $editabile? $sid : 0, $sid);
       $html = sprintf('<span id="done0%d" /><span id="done%d">---</span>', $sid, $sid);
     } else {
-      $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/si.png" alt="istanza elaborata" title="istanza elaborata" /> (' . format_date($value, 'essenziale') . ')';
+      $html = '<span style="white-space:nowrap"><img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/si.png" alt="istanza elaborata" title="istanza elaborata" /> (' . format_date($value, 'essenziale') . ')</span>';
     }
     ++$i;
     return $html;

@@ -179,10 +179,10 @@ function supporto_istanze_done_form($form, &$form_state, $sid, $uid, $tid, $chec
       'progress' => array('type' => 'none'),
     ),
     '#attributes' => array(
-      'title' => 'Fare clic per finalizzare',
-      'class' => array('button-small', 'doneButtonClass'),
+      'title' => 'Fare clic per marcare come elaborata',
+      'class' => array('button-si', 'doneButtonClass'),
       'onmouseover' => 'global_tid='.$tid,
-      'style' => 'position:relative;top:-16px;',
+      'style' => 'position:relative;top:-1.4em;',
     ),
   );
   $form['#attributes'] = array('onsubmit' => 'return false');
@@ -198,7 +198,7 @@ function supporto_istanze_done_form_callback($form, $form_state) {
   }
   _supporto_istanze_done_instance($input, FALSE);
   $commands = array();
-  $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/si.png" alt="istanza elaborata" title="istanza elaborata" /> (' . format_date(time(), 'essenziale') . ')';
+  $html = '<span style="white-space:nowrap"><img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/si.png" alt="istanza elaborata" title="istanza elaborata" /> (' . format_date(time(), 'essenziale') . ')</span>';
   $commands[] = ajax_command_replace('#done'.$sid, $html);
   return array('#type' => 'ajax', '#commands' => $commands);// $html;
 }
@@ -231,9 +231,9 @@ function supporto_istanze_cancel_form($form, &$form_state, $sid, $uid, $tid, $ch
     ),
     '#attributes' => array(
       'title' => 'Fare clic per annullare',
-      'class' => array('button-small', 'deleteButtonClass'),
+      'class' => array('button-si', 'deleteButtonClass'),
       'onmouseover' => 'global_tid='.$tid,
-      'style' => 'position:relative;top:-16px;',
+      'style' => 'position:relative;top:-1.4em;',
     ),
   );
   $form['#attributes'] = array('onsubmit' => 'return false');
@@ -249,7 +249,7 @@ function supporto_istanze_cancel_form_callback($form, $form_state) {
   }
   _supporto_istanze_cancel_instance($input, FALSE);
   $commands = array();
-  $html = '<img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date(time(), 'essenziale') . ')<script type="text/javascript">var node=document.getElementById("can0'.$sid.'");if (node) {while (node.nodeName.toLowerCase() !== "tr" ) node = node.parentNode;node.style.display="none";}</script>';
+  $html = '<span style="white-space:nowrap"><img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date(time(), 'essenziale') . ')</span><script type="text/javascript">var node=document.getElementById("can0'.$sid.'");if (node) {while (node.nodeName.toLowerCase() !== "tr" ) node = node.parentNode;node.style.display="none";}</script>';
   $commands[] = ajax_command_replace('#can'.$sid, $html);
   $commands[] = ajax_command_replace('#done'.$sid, '---');
   return array('#type' => 'ajax', '#commands' => $commands);// $html;
