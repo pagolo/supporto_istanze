@@ -459,6 +459,7 @@ function supporto_istanze_form_callback($form, $form_state) {
       $html2 = sprintf('<span id="can%d">%s</span>', $sid, $html2);
   } else {
     $html = sprintf('<span id="sid%d">---</span>', $sid);
+	$html2 = '';
   }
   $commands = array();
   $commands[] = ajax_command_replace('#sid'.$sid, $html);
