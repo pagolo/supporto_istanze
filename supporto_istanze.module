@@ -489,8 +489,67 @@ function _supporto_istanze_email($params) {
     return; 
   }
   if (_supporto_istanze_check_email($data['node_id'])) {
+	$attachment = array(
+	'filecontent' => '<?xml version="1.0" encoding="ISO-8859-1"?><Segnatura></Segnatura>',
+	'filename' => 'Segnatura.xml',
+	'filemime' => 'text/xml',
+	);
+	$params['attachment'] = $attachment;
+	$params['headers'] = array('Content-Type' => 'text/plain');
     drupal_mail('supporto_istanze', 'segreteria', $segret, language_default(), $params);
   } 
+}
+
+function _supporto_istanze_signature_data($message, $params) {
+	$data = array(
+		'msg_content'		=> implode("\n",$message['body']),
+		'pa_code' => 'istsc_bgic83600g', // rem hc
+		'AOO' => 'AOOICFERMI', // rem hc
+		'serial' => sprintf("%'07d", $params['submission']), // rem hc
+		'date' => format_date($params['timestamp'], 'custom', 'Y-m-d'), // rem hc
+	);
+	return $data;
+}
+
+function _supporto_istanze_build_signature($message, $params) {
+	
+	$data = _supporto_istanze_signature_data($message, $params);
+	
+	$writer = new XMLWriter();  
+	$writer->openMemory();  
+	$writer->startDocument('1.0','ISO-8859-1');  
+	$writer->setIndent(true);
+	$writer->startElement('Segnatura');
+		$writer->setIndent(true);
+		$writer->startElement('Intestazione');
+			$writer->setIndent(true);
+			$writer->startElement('Identificatore');
+				$writer->setIndent(true);
+				$writer->startElement('CodiceAmministrazione');
+				$writer->text($data['pa_code']);
+				$writer->endElement();  
+				$writer->startElement('CodiceAOO');
+				$writer->text($data['AOO']);
+				$writer->endElement();  
+				$writer->startElement('CodiceRegistro');
+				$writer->endElement();  
+				$writer->startElement('NumeroRegistrazione');
+				$writer->text($data['serial']);
+				$writer->endElement();  
+				$writer->startElement('DataRegistrazione');
+				$writer->text($data['date']);
+				$writer->endElement();  
+			$writer->endElement();  
+		$writer->endElement();  
+		$writer->startElement('Descrizione');
+			$writer->setIndent(true);
+			$writer->startElement('TestoDelMessaggio');
+			$writer->text($data['msg_content']);
+			$writer->endElement();  
+		$writer->endElement();  
+	$writer->endElement();  
+	$writer->endDocument();
+	return $writer->outputMemory(true);
 }
 
 function supporto_istanze_mail($key, &$message, $params) {
@@ -515,7 +574,7 @@ function supporto_istanze_mail($key, &$message, $params) {
     '@qualifica_operatore' => (empty($logged->field_qualifica))? '' : $logged->field_qualifica['und'][0]['value'],
 //    '@nome_dirigente' => variable_get('supporto_istanze_nome_dirigente', ''),
   );
-  
+    
   switch($key) {
     case 'notifica':
       $message['subject'] = @t('Notifica di istanza evasa (@nomesito)', $variables, $options);
@@ -534,6 +593,10 @@ function supporto_istanze_mail($key, &$message, $params) {
         $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
       }
       $message['body'][] = @t(variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\n@operatore (@qualifica_operatore)."), $variables, $options);
+      if (isset($params['attachment'])) {
+	    $params['attachment']['filecontent'] = _supporto_istanze_build_signature($message, $params);
+        $message['params']['attachments'][] = $params['attachment'];
+      }
       break;
   }
 }
