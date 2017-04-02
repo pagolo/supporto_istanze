@@ -63,6 +63,73 @@ function supporto_istanze_admin_settings_form() {
     '#title' => "Saluti e firma. E' possibile modificare il testo del messaggio utilizzando i riferimenti come sopra.",
     '#default_value' => variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\n@operatore (@qualifica_operatore)."),
   );
+  $form['supporto_istanze_content4'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'File di segnatura allegato email',
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_instance_signature'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Segnatura su trasmissione istanza',
+    '#defaul_value' => variable_get('supporto_istanze_instance_signature', FALSE),
+    '#attributes' => variable_get('supporto_istanze_instance_signature', FALSE) ? array('checked' => 'checked') : NULL,
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_evaded_signature'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Segnatura su istanza evasa',
+    '#defaul_value' => variable_get('supporto_istanze_evaded_signature', FALSE),
+    '#attributes' => variable_get('supporto_istanze_evaded_signature', FALSE) ? array('checked' => 'checked') : NULL,
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_nome_scuola'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Denominazione ufficiale dell\'Istituto',
+    '#default_value' => variable_get('supporto_istanze_nome_scuola', ''),
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_codice_amm'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Codice amministrazione',
+    '#default_value' => variable_get('supporto_istanze_codice_amm', ''),
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_codice_aoo'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Codice AOO',
+    '#default_value' => variable_get('supporto_istanze_codice_aoo', ''),
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_toponimo'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Toponimo (via o piazza etc.)',
+    '#default_value' => variable_get('supporto_istanze_toponimo', ''),
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_civico'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Numero civico',
+    '#default_value' => variable_get('supporto_istanze_civico', ''),
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_cap'] = array(
+    '#type' => 'textfield',
+    '#title' => 'CAP',
+    '#default_value' => variable_get('supporto_istanze_cap', ''),
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_comune'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Comune',
+    '#default_value' => variable_get('supporto_istanze_comune', ''),
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_provincia'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Provincia (SIGLA)',
+    '#default_value' => variable_get('supporto_istanze_provincia', ''),
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_fax'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Fax',
+    '#default_value' => variable_get('supporto_istanze_fax', ''),
+  );
+  $form['supporto_istanze_content4']['supporto_istanze_telefono'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Telefono',
+    '#default_value' => variable_get('supporto_istanze_telefono', ''),
+  );
+
   $form['#submit'][] = '_supporto_istanze_reset_fields';
   return system_settings_form($form);
 }

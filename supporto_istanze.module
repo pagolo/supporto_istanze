@@ -489,31 +489,58 @@ function _supporto_istanze_email($params) {
     return; 
   }
   if (_supporto_istanze_check_email($data['node_id'])) {
-	$attachment = array(
-	'filecontent' => '<?xml version="1.0" encoding="ISO-8859-1"?><Segnatura></Segnatura>',
-	'filename' => 'Segnatura.xml',
-	'filemime' => 'text/xml',
-	);
-	$params['attachment'] = $attachment;
 	$params['headers'] = array('Content-Type' => 'text/plain');
     drupal_mail('supporto_istanze', 'segreteria', $segret, language_default(), $params);
   } 
 }
 
-function _supporto_istanze_signature_data($message, $params) {
+function _supporto_istanze_signature_count() {
+	$result = variable_get('supporto_istanze_xml_count', 1);
+	variable_set('supporto_istanze_xml_count', $result + 1);
+	return $result;
+}
+
+function _supporto_istanze_signature_data($message) {
+	global $user;
+	$usr = user_load($user->uid);
+	$html = substr($message['headers']['Content-Type'], 0, 10) == 'text/html;' ? true : false;
 	$data = array(
-		'msg_content'		=> implode("\n",$message['body']),
-		'pa_code' => 'istsc_bgic83600g', // rem hc
-		'AOO' => 'AOOICFERMI', // rem hc
-		'serial' => sprintf("%'07d", $params['submission']), // rem hc
-		'date' => format_date($params['timestamp'], 'custom', 'Y-m-d'), // rem hc
-	);
+		'msg_content' => ($html?'':'<pre>') . implode("\n", str_replace("\r", '', $message['body'])) . ($html?'':'</pre>'),
+		'denominazione' => sprintf('%s - %s', variable_get('supporto_istanze_nome_scuola', ''), variable_get('supporto_istanze_comune', '')),
+		'denom_mittente' => sprintf('%s - %s %s', variable_get('supporto_istanze_nome_scuola', ''), $usr->field_cognome[LANGUAGE_NONE][0]['value'], $usr->field_nome[LANGUAGE_NONE][0]['value']), // rem hc
+		'pa_code' => variable_get('supporto_istanze_codice_amm', ''), 
+		'AOO' => variable_get('supporto_istanze_codice_aoo', ''), 
+		'serial' => sprintf("%'07d", _supporto_istanze_signature_count()),
+		'date' => format_date(time(), 'custom', 'Y-m-d'),
+		'email' => $user->mail,
+		'subject' => $message['subject'],
+		'dest_email' => $message['to'],
+		'toponimo' => variable_get('supporto_istanze_toponimo', ''),
+		'civico' => variable_get('supporto_istanze_civico', ''),
+		'cap' => variable_get('supporto_istanze_cap', ''), 
+		'comune' => variable_get('supporto_istanze_comune', ''), 
+		'provincia' => variable_get('supporto_istanze_provincia', ''), 
+		'fax' => variable_get('supporto_istanze_fax', ''), 
+		'telefono' => variable_get('supporto_istanze_telefono', ''),
+		);
 	return $data;
 }
 
-function _supporto_istanze_build_signature($message, $params) {
-	
-	$data = _supporto_istanze_signature_data($message, $params);
+function _supporto_istanze_build_pdf($message, $data) {
+require_once(realpath(".") . "/sites/all/libraries/dompdf/dompdf_config.inc.php");
+spl_autoload_register('DOMPDF_autoload'); 
+ 
+$html  = $data['msg_content'];
+ 
+$dompdf = new DOMPDF();
+$dompdf->load_html($html);
+$dompdf->render();
+$pdf = $dompdf->output();
+
+return $pdf;
+}
+
+function _supporto_istanze_build_signature($message, $data) {
 	
 	$writer = new XMLWriter();  
 	$writer->openMemory();  
@@ -540,16 +567,110 @@ function _supporto_istanze_build_signature($message, $params) {
 				$writer->text($data['date']);
 				$writer->endElement();  
 			$writer->endElement();  
-		$writer->endElement();  
+			$writer->startElement('Origine');
+				$writer->setIndent(true);
+				$writer->startElement('IndirizzoTelematico');
+				$writer->writeAttribute ('tipo', 'smtp');
+				$writer->text($data['email']);
+				$writer->endElement();  
+			$writer->startElement('Mittente');
+				$writer->setIndent(true);
+				$writer->startElement('Amministrazione');
+				
+					$writer->startElement('Denominazione');
+					$writer->text($data['denom_mittente']);
+					$writer->endElement();  
+					$writer->startElement('CodiceAmministrazione');
+					$writer->text($data['pa_code']);
+					$writer->endElement();  
+					$writer->startElement('IndirizzoPostale');
+						$writer->setIndent(true);
+						$writer->startElement('Toponimo');
+						$writer->text($data['toponimo']);
+						$writer->endElement();  
+						$writer->startElement('Civico');
+						$writer->text($data['civico']);
+						$writer->endElement();  
+						$writer->startElement('CAP');
+						$writer->text($data['cap']);
+						$writer->endElement();  
+						$writer->startElement('Comune');
+						$writer->text($data['comune']);
+						$writer->endElement();  
+						$writer->startElement('Provincia');
+						$writer->text($data['provincia']);
+						$writer->endElement();  
+					$writer->endElement();  
+					$writer->startElement('Telefono');
+					$writer->text($data['telefono']);
+					$writer->endElement();  
+					$writer->startElement('Fax');
+					$writer->text($data['fax']);
+					$writer->endElement();  
+				$writer->endElement();  
+				$writer->startElement('AOO');
+					$writer->setIndent(true);
+					$writer->startElement('Denominazione');
+					$writer->text($data['denominazione']);
+					$writer->endElement();  
+					$writer->startElement('CodiceAOO');
+					$writer->text($data['AOO']);
+					$writer->endElement();
+				$writer->endElement();  
+			$writer->endElement();  
+			$writer->endElement();  // Origine
+			$writer->startElement('Destinazione');
+			$writer->writeAttribute ('confermaRicezione', 'no');
+			
+				$writer->setIndent(true);
+				$writer->startElement('IndirizzoTelematico');
+				$writer->writeAttribute ('tipo', 'smtp');
+				$writer->text($data['dest_email']);
+				$writer->endElement();  
+				// saltare 4 righe successive?
+				$writer->startElement('Destinatario');
+				$writer->startElement('Denominazione');
+				$writer->endElement();  
+				$writer->endElement();  
+				
+			
+			$writer->endElement();  
+			$writer->startElement('Risposta');
+				$writer->setIndent(true);
+				$writer->startElement('IndirizzoTelematico');
+				$writer->writeAttribute ('tipo', 'smtp');
+				$writer->text($data['dest_email']);
+				$writer->endElement();  
+			$writer->endElement();  
+			$writer->startElement('Oggetto');
+			$writer->text($data['subject']);
+			$writer->endElement();  
+		$writer->endElement(); // Intestazione 
 		$writer->startElement('Descrizione');
 			$writer->setIndent(true);
-			$writer->startElement('TestoDelMessaggio');
-			$writer->text($data['msg_content']);
+			$writer->startElement('Documento');
+			$writer->writeAttribute ('tipoRiferimento', 'MIME');
+			$writer->writeAttribute ('nome', 'Istanza.pdf');
 			$writer->endElement();  
 		$writer->endElement();  
 	$writer->endElement();  
 	$writer->endDocument();
 	return $writer->outputMemory(true);
+}
+
+function supporto_istanze_mail_alter(&$message) {
+	if (variable_get('supporto_istanze_instance_signature', FALSE) && substr($message['subject'], 0, 2)=='#@') {
+		$message['subject'] = substr($message['subject'], 2);
+		$data = _supporto_istanze_signature_data($message);
+	    $params['attachment']['filecontent'] = _supporto_istanze_build_signature($message, $data);
+	    $params['attachment']['filename'] = 'Segnatura.xml';
+	    $params['attachment']['filemime'] = 'text/xml';
+	    $params['attachment2']['filecontent'] = _supporto_istanze_build_pdf($message, $data);
+	    $params['attachment2']['filename'] = 'Istanza.pdf';
+	    $params['attachment2']['filemime'] = 'application/pdf';
+        $message['params']['attachments'][] = $params['attachment'];
+        $message['params']['attachments'][] = $params['attachment2'];
+ 	}
 }
 
 function supporto_istanze_mail($key, &$message, $params) {
@@ -593,9 +714,16 @@ function supporto_istanze_mail($key, &$message, $params) {
         $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
       }
       $message['body'][] = @t(variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\n@operatore (@qualifica_operatore)."), $variables, $options);
-      if (isset($params['attachment'])) {
-	    $params['attachment']['filecontent'] = _supporto_istanze_build_signature($message, $params);
+      if (variable_get('supporto_istanze_evaded_signature', FALSE)) {
+		$data = _supporto_istanze_signature_data($message);
+	    $params['attachment']['filecontent'] = _supporto_istanze_build_signature($message, $data);
+	    $params['attachment']['filename'] = 'Segnatura.xml';
+	    $params['attachment']['filemime'] = 'text/xml';
+	    $params['attachment2']['filecontent'] = _supporto_istanze_build_pdf($message, $data);
+	    $params['attachment2']['filename'] = 'Istanza.pdf';
+	    $params['attachment2']['filemime'] = 'application/pdf';
         $message['params']['attachments'][] = $params['attachment'];
+        $message['params']['attachments'][] = $params['attachment2'];
       }
       break;
   }
