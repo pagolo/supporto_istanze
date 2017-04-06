@@ -169,5 +169,12 @@ function supporto_istanze_uninstall() {
   @field_delete_field('field_si_dsga');
   @field_delete_field('field_si_referente');
   @field_delete_field('field_si_email');
-  variable_del('supporto_istanze_node_types');
+  @variable_del('supporto_istanze_node_types');
+  @variable_del('supporto_istanze_email');
+  @variable_del('supporto_istanze_notification_email');
+  @variable_del('supporto_istanze_notification_body');
+  @variable_del('supporto_istanze_segreteria_body');
+  @variable_del('supporto_istanze_notification_footer');
+  @variable_del('supporto_istanze_instance_signature');
+  @variable_del('supporto_istanze_evaded_signature');
 }

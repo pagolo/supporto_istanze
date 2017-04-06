@@ -659,8 +659,10 @@ function _supporto_istanze_build_signature($message, $data) {
 }
 
 function supporto_istanze_mail_alter(&$message) {
-	if (variable_get('supporto_istanze_instance_signature', FALSE) && substr($message['subject'], 0, 2)=='#@') {
+	if (substr($message['subject'], 0, 2)=='#@') {
 		$message['subject'] = substr($message['subject'], 2);
+		if (variable_get('supporto_istanze_instance_signature', FALSE) == FALSE)
+			return;
 		$data = _supporto_istanze_signature_data($message);
 	    $params['attachment']['filecontent'] = _supporto_istanze_build_signature($message, $data);
 	    $params['attachment']['filename'] = 'Segnatura.xml';

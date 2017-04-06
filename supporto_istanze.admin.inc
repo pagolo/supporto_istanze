@@ -117,6 +117,7 @@ function supporto_istanze_admin_settings_form() {
   $form['supporto_istanze_content4']['supporto_istanze_provincia'] = array(
     '#type' => 'textfield',
     '#title' => 'Provincia (SIGLA)',
+    '#maxlength' => 2,
     '#default_value' => variable_get('supporto_istanze_provincia', ''),
   );
   $form['supporto_istanze_content4']['supporto_istanze_fax'] = array(
