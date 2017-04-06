@@ -79,6 +79,13 @@ function supporto_istanze_admin_settings_form() {
     '#defaul_value' => variable_get('supporto_istanze_evaded_signature', FALSE),
     '#attributes' => variable_get('supporto_istanze_evaded_signature', FALSE) ? array('checked' => 'checked') : NULL,
   );
+  $form['supporto_istanze_content4']['supporto_istanze_email_protocollo'] = array(
+    '#type' => 'textfield',
+    '#title' => t('E-mail address'),
+    '#description' => 'indirizzo e-mail da filtrare',
+    '#required' => TRUE,
+    '#default_value' => variable_get('supporto_istanze_email_protocollo', ''),
+  );
   $form['supporto_istanze_content4']['supporto_istanze_nome_scuola'] = array(
     '#type' => 'textfield',
     '#title' => 'Denominazione ufficiale dell\'Istituto',

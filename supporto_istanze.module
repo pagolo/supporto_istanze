@@ -530,7 +530,7 @@ function _supporto_istanze_build_pdf($message, $data) {
 require_once(realpath(".") . "/sites/all/libraries/dompdf/dompdf_config.inc.php");
 spl_autoload_register('DOMPDF_autoload'); 
  
-$html  = $data['msg_content'];
+$html = mb_convert_encoding($data['msg_content'], 'HTML-ENTITIES', 'UTF-8');
  
 $dompdf = new DOMPDF();
 $dompdf->load_html($html);
@@ -659,10 +659,14 @@ function _supporto_istanze_build_signature($message, $data) {
 }
 
 function supporto_istanze_mail_alter(&$message) {
-	if (substr($message['subject'], 0, 2)=='#@') {
-		$message['subject'] = substr($message['subject'], 2);
-		if (variable_get('supporto_istanze_instance_signature', FALSE) == FALSE)
-			return;
+	if (variable_get('supporto_istanze_instance_signature', FALSE) == FALSE)
+		return;
+	$filter_email = variable_get('supporto_istanze_email_protocollo', '');
+	if (!empty($filter_email) && !empty(strstr($message['to'], $filter_email))) {
+		// check if signature already exists
+		foreach($message['params']['attachments'] as $attach) {
+			if (isset($attach['filename']) && $attach['filename'] === 'Segnatura.xml') return;
+		}
 		$data = _supporto_istanze_signature_data($message);
 	    $params['attachment']['filecontent'] = _supporto_istanze_build_signature($message, $data);
 	    $params['attachment']['filename'] = 'Segnatura.xml';
@@ -711,7 +715,7 @@ function supporto_istanze_mail($key, &$message, $params) {
     case 'segreteria':
       $message['subject'] = @t('Notifica di istanza evasa (@nomesito)', $variables, $options);
       $message['body'][] = @t("All'attenzione della segreteria,");
-      $message['body'][] = @t(variable_get('supporto_istanze_segreteria_body', "L'istanza @istanza, n. @istanza_serial del @data presentata da @nome, è stata @esito."), $variables, $options);
+      $message['body'][] = @t(variable_get('supporto_istanze_segreteria_body', "L'istanza @istanza, n. @istanza_serial del @data presentata da @nome,\nè stata @esito."), $variables, $options);
       if ($params['is_ok'] == 2) {
         $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
       }
