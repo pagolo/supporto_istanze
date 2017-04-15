@@ -53,6 +53,11 @@ function supporto_istanze_admin_settings_form() {
     '#title' => "Notifica all'utente. E' possibile modificare il testo del messaggio utilizzando i riferimenti preceduti da @ come da esempio.",
     '#default_value' => variable_get('supporto_istanze_notification_body', "La sua istanza @istanza, n. @istanza_id del @data, è stata @esito."),
   );
+  $form['supporto_istanze_content3']['supporto_istanze_segreteria_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => "Oggetto email alla segreteria. E' possibile modificare il testo dell'oggetto utilizzando i riferimenti come sopra.",
+    '#default_value' => variable_get('supporto_istanze_segreteria_subject', "Notifica istanza evasa - @istanza n. @istanza_serial - @nome"),
+  );
   $form['supporto_istanze_content3']['supporto_istanze_segreteria_body'] = array(
     '#type' => 'textarea',
     '#title' => "Email alla segreteria. E' possibile modificare il testo del messaggio utilizzando i riferimenti come sopra.",
