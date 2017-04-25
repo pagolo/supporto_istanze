@@ -23,7 +23,7 @@ class supporto_istanze_annullato_data_views_handler_field extends views_handler_
     elseif ($nodata || is_null($value)) {
       $html = sprintf('<span id="can0%d" /><span id="can%d">---</span>', $editabile? $sid : 0, $sid);
     } else {
-      $html = '<span style="white-space:nowrap"><img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date($value, 'essenziale') . ')</span>';
+      $html = '<span style="white-space:nowrap"><img class="istanza-annullata" src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date($value, 'essenziale') . ')</span>';
     }
     ++$i;
     return $html;

@@ -88,7 +88,6 @@ function supporto_istanze_admin_settings_form() {
     '#type' => 'textfield',
     '#title' => t('E-mail address'),
     '#description' => 'indirizzo e-mail da filtrare',
-    '#required' => TRUE,
     '#default_value' => variable_get('supporto_istanze_email_protocollo', ''),
   );
   $form['supporto_istanze_content4']['supporto_istanze_nome_scuola'] = array(

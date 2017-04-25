@@ -249,7 +249,7 @@ function supporto_istanze_cancel_form_callback($form, $form_state) {
   }
   _supporto_istanze_cancel_instance($input, FALSE);
   $commands = array();
-  $html = '<span style="white-space:nowrap"><img src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date(time(), 'essenziale') . ')</span><script type="text/javascript">var node=document.getElementById("can0'.$sid.'");if (node) {while (node.nodeName.toLowerCase() !== "tr" ) node = node.parentNode;node.style.display="none";}</script>';
+  $html = '<span style="white-space:nowrap"><img class="istanza-annullata" src="' . drupal_get_path('module', 'supporto_istanze') . '/icone/no.png" alt="istanza annullata" title="istanza annullata" /> (' . format_date(time(), 'essenziale') . ')</span><script type="text/javascript">var node=document.getElementById("can0'.$sid.'");if (node) {while (node.nodeName.toLowerCase() !== "tr" ) node = node.parentNode;node.style.display="none";}</script>';
   $commands[] = ajax_command_replace('#can'.$sid, $html);
   $commands[] = ajax_command_replace('#done'.$sid, '---');
   return array('#type' => 'ajax', '#commands' => $commands);// $html;
