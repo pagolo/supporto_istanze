@@ -510,21 +510,25 @@ function _supporto_istanze_email_address($email) {
 	return $email;
 }
 
-function _supporto_istanze_signature_data($message) {
+function _supporto_istanze_signature_data($message, $cf = false) {
 	global $user;
+	$key = _supporto_istanze_get_cf_key();
 
 	$usr = user_load($user->uid);
+	// OR
+	// if ($cf === false) $usr = user_load($params['uid']);
+	// else $usr = user_load($user->uid);
 	$html = substr($message['headers']['Content-Type'], 0, 10) == 'text/html;' ? true : false;
 	$data = array(
 		'msg_content' => ($html?'':'<pre>') . implode("\n", str_replace("\r", '', $message['body'])) . ($html?'':'</pre>'),
-		'denominazione' => sprintf('%s - %s', variable_get('supporto_istanze_nome_scuola', ''), variable_get('supporto_istanze_comune', '')),
+		'denominazione' => sprintf('%s - %s - %s', variable_get('supporto_istanze_nome_scuola', ''), $usr->field_cognome['und'][0]['value'].' '.$usr->field_nome['und'][0]['value'], $usr->field_codice_fiscale['und'][0][$key]),
 		'denom_mittente' => sprintf('%s - invio istanze', variable_get('supporto_istanze_nome_scuola', '')), // rem hc
-		'pa_code' => variable_get('supporto_istanze_codice_amm', ''), 
-		'AOO' => variable_get('supporto_istanze_codice_aoo', ''), 
+		'pa_code' => sprintf('%s_%d',strtolower($usr->field_cognome['und'][0]['value']),$usr->uid),
+		'AOO' => sprintf('AOO%d', $usr->uid), 
 		'serial' => sprintf("%'07u", _supporto_istanze_signature_count()),
 		'date' => format_date(time(), 'custom', 'Y-m-d'),
 		'email' => _supporto_istanze_email_address($message['headers']['Sender']), //$user->mail,
-		'subject' => $message['subject'],
+		'subject' => $message['subject'] . ($cf ? ' (' . $usr->field_codice_fiscale['und'][0][$key] . ')' : ''),
 		'dest_email' => $message['to'],
 		'toponimo' => variable_get('supporto_istanze_toponimo', ''),
 		'civico' => variable_get('supporto_istanze_civico', ''),
@@ -589,7 +593,7 @@ function _supporto_istanze_build_signature($message, $data) {
 				$writer->startElement('Amministrazione');
 				
 					$writer->startElement('Denominazione');
-					$writer->text($data['denom_mittente']);
+					$writer->text($data['denominazione']);
 					$writer->endElement();  
 					$writer->startElement('CodiceAmministrazione');
 					$writer->text($data['pa_code']);
@@ -678,7 +682,8 @@ function supporto_istanze_mail_alter(&$message) {
 		foreach($message['params']['attachments'] as $attach) {
 			if (isset($attach['filename']) && $attach['filename'] === 'Segnatura.xml') return;
 		}
-		$data = _supporto_istanze_signature_data($message);
+		$data = _supporto_istanze_signature_data($message, true);
+		if (!isset($params['attachment'])) $params['attachment'] = array();
 	    $params['attachment']['filecontent'] = _supporto_istanze_build_signature($message, $data);
 	    $params['attachment']['filename'] = 'Segnatura.xml';
 	    $params['attachment']['filemime'] = 'text/xml';
@@ -693,6 +698,7 @@ function supporto_istanze_mail_alter(&$message) {
 function supporto_istanze_mail($key, &$message, $params) {
   global $user;
   $logged = user_load($user->uid);
+  $requestor = user_load($params['uid']);
   if (!($logged)) {
     $logged = $user;
   }
@@ -702,6 +708,7 @@ function supporto_istanze_mail($key, &$message, $params) {
   $variables = array(
     '@nomesito' => variable_get('site_name', 'Drupal'),
     '@nome' => (empty($params['user']->field_cognome) || empty($params['user']->field_nome))? $params['user']->name : $params['user']->field_nome['und'][0]['value'] . ' ' .$params['user']->field_cognome['und'][0]['value'],
+	'@codice_fiscale' => $requestor->field_codice_fiscale['und'][0]['value'],
     '@istanza' => $params['nomenodo'],
     '@istanza_id' => $params['submission'],
     '@istanza_serial' => $params['submission_serial'],
@@ -1264,3 +1271,13 @@ function _supporto_istanze_reset_fields($form = NULL) {
   _supporto_istanze_visto_referente_reset_field($form);
   _supporto_istanze_email_segr_reset_field($form);
 }
+
+function _supporto_istanze_get_cf_key() {
+	$a = field_info_field('field_codice_fiscale');
+	if (!$a) {
+		echo "errore: necessario campo 'Codice Fiscale'";
+		exit;
+	}
+	return $a['type'] == 'text'? 'value' : 'code';
+}
+

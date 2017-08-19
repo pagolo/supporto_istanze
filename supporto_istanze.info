@@ -2,7 +2,7 @@ name = "Supporto per Istanze on line"
 description = "modulo di supporto per la funzionalità di Istanze on line progettata da Nadia Caprotti"
 core = 7.x
 package = Other
-version = "7.x-2.4beta3"
+version = "7.x-2.5"
 
 dependencies[] = ctools
 dependencies[] = views

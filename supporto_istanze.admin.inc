@@ -95,6 +95,7 @@ function supporto_istanze_admin_settings_form() {
     '#title' => 'Denominazione ufficiale dell\'Istituto',
     '#default_value' => variable_get('supporto_istanze_nome_scuola', ''),
   );
+/*
   $form['supporto_istanze_content4']['supporto_istanze_codice_amm'] = array(
     '#type' => 'textfield',
     '#title' => 'Codice amministrazione',
@@ -105,6 +106,7 @@ function supporto_istanze_admin_settings_form() {
     '#title' => 'Codice AOO',
     '#default_value' => variable_get('supporto_istanze_codice_aoo', ''),
   );
+*/
   $form['supporto_istanze_content4']['supporto_istanze_toponimo'] = array(
     '#type' => 'textfield',
     '#title' => 'Toponimo (via o piazza etc.)',
