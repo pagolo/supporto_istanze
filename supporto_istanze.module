@@ -679,8 +679,10 @@ function supporto_istanze_mail_alter(&$message) {
 	$filter_email = variable_get('supporto_istanze_email_protocollo', '');
 	if (!empty($filter_email) && strstr($message['to'], $filter_email)) {
 		// check if signature already exists
-		foreach($message['params']['attachments'] as $attach) {
-			if (isset($attach['filename']) && $attach['filename'] === 'Segnatura.xml') return;
+		if (isset($message['params']['attachments'])) {
+			foreach($message['params']['attachments'] as $attach) {
+				if (isset($attach['filename']) && $attach['filename'] === 'Segnatura.xml') return;
+			}
 		}
 		$data = _supporto_istanze_signature_data($message, true);
 		if (!isset($params['attachment'])) $params['attachment'] = array();
@@ -708,7 +710,7 @@ function supporto_istanze_mail($key, &$message, $params) {
   $variables = array(
     '@nomesito' => variable_get('site_name', 'Drupal'),
     '@nome' => (empty($params['user']->field_cognome) || empty($params['user']->field_nome))? $params['user']->name : $params['user']->field_nome['und'][0]['value'] . ' ' .$params['user']->field_cognome['und'][0]['value'],
-	'@codice_fiscale' => $requestor->field_codice_fiscale['und'][0]['value'],
+	'@codice_fiscale' => isset($requestor->field_codice_fiscale['und']) ? $requestor->field_codice_fiscale['und'][0][_supporto_istanze_get_cf_key()] : '',
     '@istanza' => $params['nomenodo'],
     '@istanza_id' => $params['submission'],
     '@istanza_serial' => $params['submission_serial'],
