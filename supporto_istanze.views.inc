@@ -108,6 +108,9 @@ function supporto_istanze_views_data() {
       'handler' => 'supporto_istanze_annullato_data_views_handler_field',
       'click sortable' => FALSE,
     ),
+    'filter' => array(
+      'handler' => 'supporto_istanze_annullato_data_views_handler_filter',
+    ),
   );
   $data['si']['elaborato_data'] = array(
     'title' => 'Elaborato',
@@ -116,6 +119,9 @@ function supporto_istanze_views_data() {
     'field' => array(
       'handler' => 'supporto_istanze_elaborato_data_views_handler_field',
       'click sortable' => FALSE,
+    ),
+    'filter' => array(
+      'handler' => 'supporto_istanze_elaborato_data_views_handler_filter',
     ),
   );
   $data['si']['motivazioni'] = array(
@@ -172,9 +178,15 @@ function supporto_istanze_views_handlers() {
      ),
     'supporto_istanze_annullato_data_views_handler_field' => array(
       'parent' => 'views_handler_field_date',
+     ),
+    'supporto_istanze_annullato_data_views_handler_filter' => array(
+      'parent' => 'views_handler_filter_boolean_operator',
      ),        
     'supporto_istanze_elaborato_data_views_handler_field' => array(
       'parent' => 'views_handler_field_date',
+     ),        
+    'supporto_istanze_elaborato_data_views_handler_filter' => array(
+      'parent' => 'views_handler_filter_boolean_operator',
      ),        
     'supporto_istanze_motivazioni_views_handler_field' => array(
       'parent' => 'views_handler_field',
