@@ -99,6 +99,9 @@ function supporto_istanze_views_data() {
       'handler' => 'views_handler_field_date',
       'click sortable' => FALSE,
     ),
+    'filter' => array(
+      'handler' => 'supporto_istanze_evaso_data_views_handler_filter',
+    ),
   );
   $data['si']['annullato_data'] = array(
     'title' => 'Annullato',
@@ -186,6 +189,9 @@ function supporto_istanze_views_handlers() {
       'parent' => 'views_handler_field_date',
      ),        
     'supporto_istanze_elaborato_data_views_handler_filter' => array(
+      'parent' => 'views_handler_filter_boolean_operator',
+     ),        
+    'supporto_istanze_evaso_data_views_handler_filter' => array(
       'parent' => 'views_handler_filter_boolean_operator',
      ),        
     'supporto_istanze_motivazioni_views_handler_field' => array(
