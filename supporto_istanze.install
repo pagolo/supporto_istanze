@@ -64,6 +64,19 @@ function supporto_istanze_update_7202() {
   }
 }
 
+/**
+ * Adding useful indexes.
+ */
+function supporto_istanze_update_7203() {
+  $table = 'supporto_istanze';
+  if (!db_index_exists($table, 'submission_id')) {
+    db_add_index($table, 'submission_id', array('submission_id'));
+  }
+  if (!db_index_exists($table, 'user_id')) {
+    db_add_index($table, 'user_id', array('user_id'));
+  }
+}
+
 function supporto_istanze_enable() {
   _supporto_istanze_reset_fields();
 }
@@ -156,6 +169,10 @@ function supporto_istanze_schema() {
       ),
     ),
     'primary key' => array('tid'),
+    'indexes' => array(
+      'submission_id' => array('submission_id'),
+      'user_id' => array('user_id'),
+    ),
   );
 
   return $schema;
