@@ -489,7 +489,7 @@ function _supporto_istanze_email($params) {
     return; 
   }
   if (_supporto_istanze_check_email($data['node_id'])) {
-	$params['headers'] = array('Content-Type' => 'text/plain');
+	  $params['headers'] = array('Content-Type' => 'text/plain');
     drupal_mail('supporto_istanze', 'segreteria', $segret, language_default(), $params);
   } 
 }
@@ -549,7 +549,7 @@ $html = mb_convert_encoding($data['msg_content'], 'HTML-ENTITIES', 'UTF-8');
  
 $dompdf = new DOMPDF();
 $dompdf->load_html($html);
-$dompdf->render();
+@$dompdf->render();
 $pdf = $dompdf->output();
 
 return $pdf;
@@ -707,6 +707,10 @@ function supporto_istanze_mail($key, &$message, $params) {
   $options = array(
     'langcode' => $message['language']->language,
   );
+  $oe = variable_get('supporto_istanze_oe', FALSE);
+  if ($oe && $params['is_ok']==0) $stato='sospesa';
+  if ($params['is_ok']==1) $stato='accolta';
+  if ($params['is_ok']==2) $stato='respinta';
   $variables = array(
     '@nomesito' => variable_get('site_name', 'Drupal'),
     '@nome' => (empty($params['user']->field_cognome) || empty($params['user']->field_nome))? $params['user']->name : $params['user']->field_nome['und'][0]['value'] . ' ' .$params['user']->field_cognome['und'][0]['value'],
@@ -715,7 +719,7 @@ function supporto_istanze_mail($key, &$message, $params) {
     '@istanza_id' => $params['submission'],
     '@istanza_serial' => $params['submission_serial'],
     '@data' => format_date($params['timestamp'], 'custom', 'd/m/Y'),
-    '@esito' => $params['is_ok'] == 1? 'accolta' : 'respinta',
+    '@esito' => $stato,
     '@motivazioni' => $params['reasons'],
     '@operatore' => (empty($logged->field_cognome) || empty($logged->field_nome))? $logged->name : $logged->field_nome['und'][0]['value'] . ' ' .$logged->field_cognome['und'][0]['value'],
     '@qualifica_operatore' => (empty($logged->field_qualifica))? '' : $logged->field_qualifica['und'][0]['value'],
@@ -727,7 +731,7 @@ function supporto_istanze_mail($key, &$message, $params) {
       $message['subject'] = @t('Notifica di istanza evasa (@nomesito)', $variables, $options);
       $message['body'][] = @t("Gentile @nome,", $variables, $options);
       $message['body'][] = @t(variable_get('supporto_istanze_notification_body', "La sua istanza @istanza, n. @istanza_serial del @data, è stata @esito."), $variables, $options);
-      if ($params['is_ok'] == 2) {
+      if ($params['is_ok'] == 2 || ($oe && $params['is_ok'] == 0)) {
         $message['body'][] = @t("Motivazioni: @motivazioni", $variables, $options);
       }
       $message['body'][] = @t(variable_get('supporto_istanze_notification_footer', "Cordiali saluti,\n@operatore (@qualifica_operatore)."), $variables, $options);
@@ -784,7 +788,8 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
         $evaso = TRUE;
       break;
     case 'acquisito':
-      if ($input['is_ok'] == 2 || !$usa_visto_dsga)
+      $oe = variable_get('supporto_istanze_oe', FALSE);
+      if ($input['is_ok'] == 2 || (!$usa_visto_dsga && ($oe == FALSE || $input['is_ok'] != 0)))
         $evaso = TRUE;
       break;
     case 'visto':
@@ -833,7 +838,8 @@ function supporto_istanze_reasons_form_submit($form, &$form_state) {
   ->execute();
   if ($rows > 0 ) {
     drupal_set_message('Salvato campo istanza <em>' . $input['submission'] . '</em>.');
-    if ($evaso) {
+    $oe = variable_get('supporto_istanze_oe', FALSE);
+    if ($evaso || ($oe && $input['is_ok'] == 0)) {
       _supporto_istanze_email($input);
     }
   } else {
@@ -896,13 +902,18 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
   );
   switch ($campo) {
     case 'acquisito':
+    $options = array(
+        1 => $usa_visto_dsga? 'Acquisisci istanza (salvo visto DSGA contrario)' : 'Acquisisci istanza',
+        2 => 'Respingi istanza',
+      );
+    $oe = variable_get('supporto_istanze_oe', FALSE);
+    if ($oe) {
+      $options[0] = 'Sospendi istanza';
+    }
     $form['is_ok'] = array(
       '#type' => 'radios',
       '#title' => 'acquisisci o respingi:',
-      '#options' => array(
-        1 => $usa_visto_dsga? 'Acquisisci istanza (salvo visto DSGA contrario)' : 'Acquisisci istanza',
-        2 => 'Respingi istanza',
-      ),
+      '#options' => $options,
       '#default_value' => $checked? $checked : 1,
       '#attributes' => array(
         'title' => 'Selezionare per cambiare lo stato',
@@ -984,8 +995,9 @@ function supporto_istanze_reasons_form($form, &$form_state, $campo) {
 }
 
 function _supporto_istanze_textarea_validate($element, &$form_state, $form) {
-  if (empty($element['#value']) && $form_state['input']['is_ok'] == 2) {
-    form_error($element, 'Campo richiesto per istanza respinta.');
+  $oe = variable_get('supporto_istanze_oe', FALSE);
+  if (empty($element['#value']) && ($form_state['input']['is_ok'] == 2 || ($oe && $form_state['input']['is_ok'] == 0))) {
+    form_error($element, 'Campo richiesto per istanza respinta/sospesa.');
   }
 }
 

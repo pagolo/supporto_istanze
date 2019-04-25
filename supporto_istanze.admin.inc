@@ -26,6 +26,16 @@ function supporto_istanze_admin_settings_form() {
     '#options' => $my_nodes,
     '#multiple' => TRUE,
   );
+  $form['supporto_istanze_content1bis'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Operatori economici',
+  );
+  $form['supporto_istanze_content1bis']['supporto_istanze_oe'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Attiva modalità operatori economici',
+    '#defaul_value' => variable_get('supporto_istanze_oe', FALSE),
+    '#attributes' => variable_get('supporto_istanze_oe', FALSE) ? array('checked' => 'checked') : NULL,
+  );
   $form['supporto_istanze_content2'] = array(
     '#type' => 'fieldset',
     '#title' => 'Email della segreteria',
